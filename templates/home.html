@@ -6,13 +6,17 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         .container {
             max-width: 600px;
-            margin: 0 auto;
             padding: 20px;
+            height: 300px;  /* Add this line */
         }
 
         form {
@@ -20,7 +24,8 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
-            overflow: auto; 
+            overflow: auto;
+            width: 500px;
         }
 
         label {
@@ -28,52 +33,74 @@
         }
 
         input[type="text"] {
-            width: 60%;  /* Adjust this value as needed */
+            width: 80%;
             padding: 10px;
             margin: 10px 0;
             border-radius: 4px;
             border: 1px solid #ccc;
         }
 
-        input[type="submit"] {
+        .form-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .input-section {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .input-section input[type="text"] {
+            width: 72.2%;
+        }
+
+        .input-section input[type="submit"] {
+            width: 20%;
             background-color: #4CAF50;
             color: white;
             padding: 10px 10px;
             border: none;
+            font-size: 16px;
             border-radius: 4px;
             cursor: pointer;
-            display: block;  
+            display: block;
             margin: 10px 0;
-
-            font-size: 16px;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #45a049;
-
         }
 
         #message {
             margin-top: 20px;
             font-size: 18px;
-            color: red;
+            color: rgb(53, 53, 53);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <form method="POST">
+            <label for="name">WESTWOOD ROBOTICS CHECK IN/CHECK OUT</label><br>
             <label for="id">Enter Student ID Number (123456):</label><br>
-            <input type="text" id="id" name="id" oninput="clearMessage()"><br>
-            <input type="submit" value="Submit">
+            <div class="form-content">
+                <div class="input-section">
+                    <input type="text" id="id" name="id" oninput="clearMessage()">
+                    <input type="submit" value="Submit">
+                </div>
+                <p id="message">{{ message }}</p>
+            </div>
         </form>
-        <p id="message">{{ message }}</p>
     </div>
 
     <script>
-    function clearMessage() {
-        document.getElementById('message').innerHTML = '';
-    }
+        window.onload = function() {
+            var messageElement = document.getElementById('message');
+            if (messageElement.innerHTML.trim() !== '') {
+                setTimeout(function() {
+                    messageElement.innerHTML = '';
+                }, 5000);
+            }
+        };
     </script>
 </body>
 </html>
