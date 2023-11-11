@@ -67,3 +67,11 @@ jobs:
           app-name: 'westwoodroboticshours'
           slot-name: 'production'
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_d6319c039f4b4d0c82c4d907ebba7d70 }}
+                             - name: 'Deploy to Azure Web App'
+                             uses: azure/webapps-deploy@v2
+                             id: deploy-to-webapp
+                             with:
+                               app-name: 'westwoodroboticshours'
+                               slot-name: 'production'
+                               publish-profile: ${{ secrets.AzureAppService_PublishProfile_d6319c039f4b4d0c82c4d907ebba7d70 }}
+                               startup-file: 'gunicorn -w 4 -b :8000 HoursWeb:app'
