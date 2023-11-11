@@ -67,4 +67,4 @@ jobs:
           app-name: 'westwoodroboticshours'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9F68F58141A042A0AE938D25DEF83780 }}
-          startup-command: 'gunicorn -w 4 -b :8000 HoursWeb:app'
+
