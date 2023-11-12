@@ -1,6 +1,9 @@
 import csv
 import re
 
+
+open('hourTotals.csv', 'w').close()
+
 with open('hourTotals.txt', 'r') as f:
     lines = f.readlines()
 
@@ -15,3 +18,4 @@ with open('hourTotals.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['ID', 'Total Time'])
     writer.writerows(data)
+
