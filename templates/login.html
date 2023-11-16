@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            height: 300px;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            overflow: auto;
+            width: 500px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 24px;
+        } 
+
+        .form-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .input-section {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .input-section input[type="submit"] {
+            width: 20%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 10px;
+            border: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: block;
+            margin: 10px 0;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+            color: rgb(53, 53, 53);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form method="POST">
+            <label for="name">WESTWOOD ROBOTICS HOURS - OFFICER LOGIN</label><br>
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username"><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password"><br>
+            <input type="submit" value="Login">
+            {% if error %}
+            <p id="message">{{ error }}</p>
+            {% endif %}
+        </form>
+    </div>
+</body>
+</html>

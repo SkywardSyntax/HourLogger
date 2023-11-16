@@ -1,10 +1,17 @@
 from flask import Flask, request, redirect, url_for, render_template
 import datetime
 import re
+import random
+import string
+
 
 app = Flask(__name__)
+random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+r_string = ("/" + random_string)
 
 class Attendance:
+
+    
     def __init__(self):
         self.records = {}
         self.line_numbers = {}
@@ -64,12 +71,23 @@ class Attendance:
 attendance = Attendance()  # Create an instance of Attendance
 
 @app.route('/', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != 'admin' or request.form['password'] != 'secret':
+            error = 'Invalid Credentials. Please try again.'
+        else:
+            return redirect('/' + random_string)
+    return render_template('login.html', error=error)
+
+@app.route('/' + random_string, methods=['GET', 'POST'])
 def home():
     message = ''
     if request.method == 'POST':
         id = request.form.get('id')
         message = attendance.check_status_and_act(id)
     return render_template('home.html', message=message)
+
 def main():
     app.run(debug=True)
 
