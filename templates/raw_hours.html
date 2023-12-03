@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #attendance {
+            text-align: center;
+            line-height: 1.6;
+            font-size: 20px;
+            color: red;  /* For debugging */
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            setInterval(function(){
+                $.get("/stream", function(data, status){
+                    $("#attendance").text(data);
+                });
+            }, 1000);  // Update every second
+        });
+    </script>
+</head>
+<body>
+    <pre id="attendance"></pre>
+</body>
+</html>
