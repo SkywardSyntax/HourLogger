@@ -18,16 +18,21 @@ class Attendance:
         now = datetime.datetime.now()
         if id not in self.records or 'check_out_time' in self.records[id]:
             self.records[id] = {'check_in_time': now}
+            if not os.path.exists('attendance.txt'):
+                open('attendance.txt', 'w').close()
             with open('attendance.txt', 'a') as f:
                 f.write(f"{id} Checked In at {now}\n")
             return "Checked In!"
         else:
             return "Already Checked In!"
-
     def check_out(self, id):
         now = datetime.datetime.now()
         check_in_time = None
-
+        if not os.path.exists('attendance.txt'):
+            open('attendance.txt', 'w').close()
+        # Check if the user has an incomplete entry in the attendance.txt file
+        with open('attendance.txt', 'r') as f:
+            lines = f.readlines()
         # Check if the user has an incomplete entry in the attendance.txt file
         with open('attendance.txt', 'r') as f:
             lines = f.readlines()

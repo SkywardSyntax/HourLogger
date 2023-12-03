@@ -9,27 +9,61 @@
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .container {
+
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
         }
         #attendance {
-            text-align: center;
             line-height: 1.6;
-            font-size: 20px;
-            color: red;  /* For debugging */
+            font-size: 24px;
+            color: #333;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         $(document).ready(function(){
             setInterval(function(){
                 $.get("/stream", function(data, status){
-                    $("#attendance").text(data);
+                    var text = $(data).text();  // Extract the text from the <pre> tags
+                    var rows = text.split('\n');  // Split the text into rows
+                    var table = $('<table></table>');
+                    for (var i = 0; i < rows.length; i++) {
+                        var row = $('<tr></tr>');
+                        var cells = rows[i].split(' ');  // Split the row into cells
+                        for (var j = 0; j < cells.length; j++) {
+                            var cell = $('<td></td>').text(cells[j]);
+                            row.append(cell);
+                        }
+                        table.append(row);
+                    }
+                    $("#attendance").empty().append(table);
                 });
             }, 1000);  // Update every second
         });
     </script>
 </head>
 <body>
-    <pre id="attendance"></pre>
+    <div class="container">
+        <div id="attendance"></div>
+    </div>
 </body>
 </html>
