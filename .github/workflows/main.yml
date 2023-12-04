@@ -8,6 +8,9 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
+    - name: Remove __pycache__ directory
+      run: sudo rm -rf __pycache__
+
     - uses: actions/checkout@v2
 
     - name: Stop Gunicorn server and remove screen
