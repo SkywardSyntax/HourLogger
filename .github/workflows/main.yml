@@ -18,4 +18,4 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         ls
-        gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 app:app
+        sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 app:app
