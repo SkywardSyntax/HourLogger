@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Stop Gunicorn server
+      run: |
+        pkill gunicorn || true
+
+    - name: Start Gunicorn server
+      run: |
+        cd $GITHUB_WORKSPACE
+        gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 app:app
