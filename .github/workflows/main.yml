@@ -13,14 +13,14 @@ jobs:
 
     - name: Move data files out of repository
       run: |
-        mkdir -p /tmp/data
-        mv attendance.txt hourtotals.txt hourtotals.csv /tmp/data/ || true
+        sudo mkdir -p /tmp/data
+        sudo mv attendance.txt hourtotals.txt hourtotals.csv /tmp/data/ || true
 
     - uses: actions/checkout@v2
 
     - name: Move data files back into repository
       run: |
-        mv /tmp/data/* . || true
+        sudo mv /tmp/data/* . || true
 
     - name: Stop Gunicorn server and remove screen
       run: |
