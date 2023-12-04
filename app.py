@@ -7,7 +7,7 @@ import string
 import os
 
 app = Flask(__name__)
-random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
 r_string = ("/" + random_string)
 
 class Attendance:
