@@ -11,7 +11,16 @@ jobs:
     - name: Remove __pycache__ directory
       run: sudo rm -rf __pycache__
 
+    - name: Move data files out of repository
+      run: |
+        mkdir -p /tmp/data
+        mv attendance.txt hourtotals.txt hourtotals.csv /tmp/data/ || true
+
     - uses: actions/checkout@v2
+
+    - name: Move data files back into repository
+      run: |
+        mv /tmp/data/* . || true
 
     - name: Stop Gunicorn server and remove screen
       run: |
