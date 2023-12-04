@@ -10,12 +10,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Stop Gunicorn server
+    - name: Stop Gunicorn server and remove screen
       run: |
-        pkill gunicorn || true
+        screen -X -S gunicorn quit || true
 
-    - name: Start Gunicorn server
+    - name: Start Gunicorn server in a new screen
       run: |
         cd $GITHUB_WORKSPACE
         ls
-        sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 app:app
+        screen -dmS gunicorn sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 app:app
