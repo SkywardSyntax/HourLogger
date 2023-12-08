@@ -1,7 +1,9 @@
+import csv
 import re
 import os
 import shutil
 import datetime
+import math
 
 def calculate_total_time():
     totals = {}
@@ -59,3 +61,33 @@ totals = calculate_total_time()
 with open('hourTotals.txt', 'w') as f:
     for id, time in totals.items():
         f.write(f"ID: {id}, Total time: {time['hours']} hours {time['minutes']} minutes\n")
+
+
+totals = {}
+
+# Read existing totals from hourTotals.txt
+with open('hourTotals.txt', 'r') as f:
+    for line in f:
+        match = re.match(r'ID: (\d+), Total time: (\d+) hours (\d+) minutes', line.strip())
+        if match:
+            id, hours, minutes = match.groups()
+            totals[id] = {'hours': int(hours), 'minutes': int(minutes)}
+
+with open('hourTotals.csv', 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(['ID', 'Total Hours'])  # Write the header
+    for id, time in totals.items():
+        total_hours = time['hours']
+        total_minutes = time['minutes']
+
+        # Round minutes to the nearest 15-minute interval
+        remainder = total_minutes % 15
+        if remainder >= 7.5:
+            total_minutes += 15 - remainder
+        else:
+            total_minutes -= remainder
+
+        # Convert total hours and minutes to a time string
+        total_time = "{:02d}:{:02d}:{:02d}".format(total_hours, total_minutes, 0)
+
+        writer.writerow([id, total_time])  # Write the data

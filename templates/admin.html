@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            height: 300px;  /* Add this line */
+            text-align: center;  /* Add this line */
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            overflow: auto;
+            margin: auto;  /* Add this line */
+            display: inline-block;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        .input-section {
+            display: flex;
+            justify-content: center;  /* Change this line */
+            width: 100%;
+        }
+
+
+        .input-section input[type="button"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 10px;
+            border: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 7.5px;  /* Add this line to add some space between the buttons */
+            margin-left: 7.5px;  /* Add this line to add some space between the buttons */
+        }
+
+        .input-section input[type="buttonADMIN"] {
+            background-color: #af4c4c;
+            color: white;
+            width: 50px;
+            padding: 10px 10px;
+            border: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 7.5px;  /* Add this line to add some space between the buttons */
+            margin-left: 7.5px;  /* Add this line to add some space between the buttons */
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+            color: rgb(53, 53, 53);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form>
+            <h1 style="text-align: center;">Welcome, Admin!</h1>
+            <div class="input-section">
+                <input type="button" value="View Raw Hours" onclick="location.href='/raw_hours'">
+                <input type="button" value="Calculate Total Hours" onclick="calculateHours()">
+                <input type="button" value="Show Total Hours" onclick="location.href='/total_hours'">
+                <input type="button" value="Download CSV" onclick="location.href='/download_csv'">
+                <input type="buttonADMIN" value="Logout" onclick="location.href='/logout'">
+                <!-- Add more buttons here for other features -->
+            </div>
+        </form>
+    </div>
+    <script>
+        function calculateHours() {
+            location.href='/calculate_hours';
+            alert('Total hours calculated successfully!');
+        }
+    </script>
+</body>
+</html>

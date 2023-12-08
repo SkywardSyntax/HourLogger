@@ -1,5 +1,7 @@
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, request, redirect, session, url_for, render_template
 from flask import Flask, request, redirect, url_for, render_template, Response
+from flask import send_file
+from HoursAdder import calculate_total_time  
 import datetime
 import re
 import random
@@ -7,6 +9,7 @@ import string
 import os
 
 app = Flask(__name__)
+app.secret_key = 'skywardsyntazx'
 random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 r_string = ("/" + random_string)
 
@@ -107,6 +110,17 @@ def attendance_data():
         data = f.read()
     return Response(data, mimetype='text/plain')
 
+
+@app.route('/total_hours', methods=['GET'])
+def total_data():
+    with open('hourTotals.txt', 'r') as f:
+        data = f.read()
+    return Response(data, mimetype='text/plain')
+
+@app.route('/download_csv', methods=['GET'])
+def download_file():
+    return send_file('hourTotals.csv', as_attachment=True)
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     error = None
@@ -114,6 +128,7 @@ def login():
         if request.form['username'] != 'admin' or request.form['password'] != 'secret':
             error = 'Invalid Credentials. Please try again.'
         else:
+            session['username'] = request.form['username']
             return redirect('/' + random_string)
     return render_template('login.html', error=error)
 
@@ -125,6 +140,43 @@ def home():
         message = attendance.check_status_and_act(id)
     return render_template('home.html', message=message)
 
+
+@app.route('/admin', methods=['GET'])
+def admin():
+    if 'username' in session and session['username'] == 'admin':
+        return render_template('admin.html')
+    else:
+        session['next_url'] = url_for('admin')
+        return redirect(url_for('loginz'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def loginz():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == 'admin' and password == 'secret':  # change 'password' to 'secret'
+            session['username'] = username
+            next_url = session.pop('next_url', url_for('home'))
+            return redirect(next_url)
+        else:
+            return "Invalid username or password", 401
+    return render_template('login.html')
+
+
+    
+@app.route('/logout', methods=['GET'])
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
+# Add this new route to your Flask application
+@app.route('/calculate_hours', methods=['GET'])
+def calculate_hours():
+    totals = calculate_total_time()
+    with open('hourTotals.txt', 'w') as f:
+        for id, time in totals.items():
+            f.write(f"ID: {id}, Total time: {time['hours']} hours {time['minutes']} minutes\n")
+    return redirect(url_for('admin'))
 
 def main():
     app.run(debug=True)
