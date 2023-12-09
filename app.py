@@ -7,6 +7,7 @@ import re
 import random
 import string
 import os
+from flask import send_from_directory
 
 app = Flask(__name__)
 app.secret_key = 'skywardsyntazx'
@@ -177,6 +178,31 @@ def calculate_hours():
         for id, time in totals.items():
             f.write(f"ID: {id}, Total time: {time['hours']} hours {time['minutes']} minutes\n")
     return redirect(url_for('admin'))
+
+@app.route('/archive', methods=['GET'])
+def archives():
+    # Get the list of .txt files in the Archives folder
+    archive_files = [file for file in os.listdir('Archives') if file.endswith('.txt')]
+    if 'username' in session and session['username'] == 'admin':
+        return render_template('archive.html', archive_files=archive_files)
+    else:
+        session['next_url'] = url_for('admin')
+        return redirect(url_for('loginz'))
+
+
+
+@app.route('/download/<filename>', methods=['GET'])
+def download_archive(filename):
+    # Construct the full file path by joining the 'Archives' folder and the selected filename
+    file_path = os.path.join('Archives', filename)
+
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        return "File not found"
+
+    # Return the file as an attachment
+    return send_from_directory('Archives', filename, as_attachment=True)
+
 
 def main():
     app.run(debug=True)

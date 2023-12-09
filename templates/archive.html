@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Archive</title>
+</head>
+<body>
+    <h1>Archive</h1>
+    <ul>
+        {% for file in archive_files %}
+        <li>
+            <a href="{{ url_for('archives', filename=file) }}" target="_blank">{{ file }}</a>
+            <a href="{{ url_for('download_archive', filename=file) }}" class="download-button">Download</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
