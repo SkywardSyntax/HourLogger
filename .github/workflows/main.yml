@@ -14,7 +14,8 @@ jobs:
     - name: Move data files out of repository
       run: |
         sudo mkdir -p /tmp/data
-        sudo mv attendance.txt hourtotals.txt hourtotals.csv /tmp/data/ || true
+        sudo mv attendance.txt hourTotals.txt hourTotals.csv /tmp/data/ || true
+        sudo mv Archives/* /tmp/data/ || true
 
     - uses: actions/checkout@v2
 
