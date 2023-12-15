@@ -15,20 +15,20 @@
         }
 
         .container {
-            max-width: 600px;
+
+            margin: 0 auto; /* Center the container horizontally */
             padding: 20px;
-            height: 300px;  /* Add this line */
-            text-align: center;  /* Add this line */
+            box-sizing: border-box; /* Include padding in the width calculation */
         }
 
-        form { 
+        form {
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
-            overflow: auto;
-            margin: auto;  /* Add this line */
-            display: inline-block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         label {
@@ -37,10 +37,10 @@
 
         .input-section {
             display: flex;
-            justify-content: center;  /* Change this line */
+            justify-content: center;
             width: 100%;
+            margin-top: 20px;
         }
-
 
         .input-section input[type="button"] {
             background-color: #4CAF50;
@@ -50,8 +50,8 @@
             font-size: 16px;
             border-radius: 4px;
             cursor: pointer;
-            margin-right: 7.5px;  /* Add this line to add some space between the buttons */
-            margin-left: 7.5px;  /* Add this line to add some space between the buttons */
+            margin-right: 7.5px;
+            margin-left: 7.5px;
         }
 
         .input-section input[type="buttonADMIN"] {
@@ -63,8 +63,21 @@
             font-size: 16px;
             border-radius: 4px;
             cursor: pointer;
-            margin-right: 7.5px;  /* Add this line to add some space between the buttons */
-            margin-left: 7.5px;  /* Add this line to add some space between the buttons */
+            margin-right: 7.5px;
+            margin-left: 7.5px;
+        }
+
+        .input-section input[type="buttonRESETALL"] {
+            background-color: #920000;
+            color: white;
+            width: 65px;
+            padding: 10px 10px;
+            border: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 7.5px;
+            margin-left: 7.5px;
         }
 
         #message {
@@ -73,17 +86,26 @@
             color: rgb(53, 53, 53);
             font-weight: bold;
         }
+
+        /* Media queries for responsive layout */
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <form>
-            <h1 style="text-align: center;">Welcome, Admin!</h1>
+            <h1>Welcome, Admin!</h1>
             <div class="input-section">
                 <input type="button" value="View Raw Hours" onclick="location.href='/raw_hours'">
                 <input type="button" value="Calculate Total Hours" onclick="calculateHours()">
                 <input type="button" value="Show Total Hours" onclick="location.href='/total_hours'">
                 <input type="button" value="Download CSV" onclick="location.href='/download_csv'">
+                <input type="buttonRESETALL" value="Reset All" onclick="confirmReset()">
                 <input type="buttonADMIN" value="Logout" onclick="location.href='/logout'">
                 <!-- Add more buttons here for other features -->
             </div>
@@ -93,6 +115,13 @@
         function calculateHours() {
             location.href='/calculate_hours';
             alert('Total hours calculated successfully!');
+        }
+    </script>
+    <script>
+        function confirmReset() {
+            if (confirm("Are you sure you want to reset all data? This action cannot be undone.")) {
+                location.href = '/reset_all';
+            }
         }
     </script>
 </body>

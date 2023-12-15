@@ -1,3 +1,4 @@
+import subprocess
 from flask import Flask, request, redirect, session, url_for, render_template
 from flask import Flask, request, redirect, url_for, render_template, Response
 from flask import send_file
@@ -173,10 +174,7 @@ def logout():
 # Add this new route to your Flask application
 @app.route('/calculate_hours', methods=['GET'])
 def calculate_hours():
-    totals = calculate_total_time()
-    with open('hourTotals.txt', 'w') as f:
-        for id, time in totals.items():
-            f.write(f"ID: {id}, Total time: {time['hours']} hours {time['minutes']} minutes\n")
+    subprocess.run(['python', 'HoursAdder.py'])
     return redirect(url_for('admin'))
 
 @app.route('/archive', methods=['GET'])
@@ -202,6 +200,34 @@ def download_archive(filename):
 
     # Return the file as an attachment
     return send_from_directory('Archives', filename, as_attachment=True)
+
+
+@app.route('/reset_all', methods=['GET'])
+def reset_all():
+    if confirm_reset():
+        clear_files()
+        return redirect(url_for('admin'))
+    else:
+        return "Reset action canceled."
+
+def confirm_reset():
+    # Implement your logic to confirm the reset action here
+    # For example, you can check if the admin is logged in or prompt for a password
+    # Return True if the reset action is confirmed, False otherwise
+    return True
+
+def clear_files():
+    # Clear the contents of attendance.txt
+    with open('attendance.txt', 'w') as f:
+        f.truncate(0)
+
+    # Clear the contents of hourTotals.txt
+    with open('hourTotals.txt', 'w') as f:
+        f.truncate(0)
+
+    # Delete the hourTotals.csv file
+    if os.path.exists('hourTotals.csv'):
+        os.remove('hourTotals.csv')
 
 
 def main():
