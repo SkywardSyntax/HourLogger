@@ -1,6 +1,6 @@
 # HourLogger
 
-HourLogger is a Python-based project designed to log and manage the hours spent by individuals, identified by their IDs. The project consists of several Python scripts that perform different tasks.
+HourLogger is a Python-based project designed to log and manage the hours spent by individuals, identified by their IDs. The project consists of several Python scripts that perform various tasks.
 
 ## Scripts
 
