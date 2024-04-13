@@ -7,6 +7,7 @@ import datetime
 import re
 import random
 import string
+import threading
 import os
 from flask import send_from_directory
 
@@ -17,23 +18,42 @@ r_string = ("/" + random_string)
 
 class Attendance:
     def __init__(self):
-        self.records = {}
+        # Read the data from attendanceBackup.txt
+        with open('attendanceBackup.txt', 'r') as backup_file:
+            backup_data = backup_file.read()
 
+        # Write the backup data to attendance.txt
+        with open('attendance.txt', 'w') as attendance_file:
+            attendance_file.write(backup_data)
+        
+        self.records = {}
     def check_in(self, id):
+        print(f"check_in called with id {id}")
+
+
         now = datetime.datetime.now()
         if id not in self.records or 'check_out_time' in self.records[id]:
             self.records[id] = {'check_in_time': now}
             if not os.path.exists('attendance.txt'):
+                print("attendance.txt does not exist")
                 open('attendance.txt', 'w').close()
             with open('attendance.txt', 'a') as f:
                 f.write(f"{id} Checked In at {now}\n")
+            subprocess.run(['python', 'attendanceBackup.py'])
             return "Checked In!"
+        
+        
         else:
             return "Already Checked In!"
+
+
     def check_out(self, id):
+        print(f"check_out called with id {id}")
+
         now = datetime.datetime.now()
         check_in_time = None
         if not os.path.exists('attendance.txt'):
+            print("attendance.txt does not exist")
             open('attendance.txt', 'w').close()
         # Check if the user has an incomplete entry in the attendance.txt file
         with open('attendance.txt', 'r') as f:
@@ -41,6 +61,7 @@ class Attendance:
         # Check if the user has an incomplete entry in the attendance.txt file
         with open('attendance.txt', 'r') as f:
             lines = f.readlines()
+
         for i, line in enumerate(lines):
             if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
                 check_in_time_str = line.split(" at ")[1].strip()
@@ -67,13 +88,17 @@ class Attendance:
 
             # Write the updated content back to the file
             with open('attendance.txt', 'w') as f:
+                print("attendance.txt exists")
                 f.writelines(lines)
+
+            subprocess.run(['python', 'attendanceBackup.py'])
             return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
         else:
             return "Not Checked In!"
 
     def check_status_and_act(self, id):
         now = datetime.datetime.now()
+        print(f"check_status_and_act called with id {id}")
 
         # Check if the user has an incomplete entry in the attendance.txt file
         with open('attendance.txt', 'r') as f:
@@ -226,6 +251,8 @@ def clear_files():
     with open('hourTotals.txt', 'w') as f:
         f.truncate(0)
 
+    with open ('attendanceBackup.txt', 'w') as f:
+        f.truncate(0)
     # Delete the hourTotals.csv file
     if os.path.exists('hourTotals.csv'):
         os.remove('hourTotals.csv')
