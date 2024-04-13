@@ -10,11 +10,14 @@ import string
 import threading
 import os
 from flask import send_from_directory
+import sys
+
 
 app = Flask(__name__)
 app.secret_key = 'skywardsyntazx'
 random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 r_string = ("/" + random_string)
+python_executable = sys.executable
 
 class Attendance:
     def __init__(self):
@@ -39,7 +42,7 @@ class Attendance:
                 open('attendance.txt', 'w').close()
             with open('attendance.txt', 'a') as f:
                 f.write(f"{id} Checked In at {now}\n")
-            subprocess.run(['python', 'attendanceBackup.py'])
+            subprocess.run([python_executable, 'attendanceBackup.py'])
             return "Checked In!"
         
         
@@ -91,7 +94,7 @@ class Attendance:
                 print("attendance.txt exists")
                 f.writelines(lines)
 
-            subprocess.run(['python', 'attendanceBackup.py'])
+            subprocess.run([python_executable, 'attendanceBackup.py'])            
             return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
         else:
             return "Not Checked In!"
