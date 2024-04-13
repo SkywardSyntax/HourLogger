@@ -121,6 +121,7 @@ def total_data():
 
 @app.route('/download_csv', methods=['GET'])
 def download_file():
+    subprocess.run(['python', 'sheetExporter.py'])
     return send_file('hourTotals.csv', as_attachment=True)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -143,7 +144,7 @@ def home():
     return render_template('home.html', message=message)
 
 
-@app.route('/admin', methods=['GET'])
+@app.route('/WestwoodRoboticsAdmin', methods=['GET'])
 def admin():
     if 'username' in session and session['username'] == 'admin':
         return render_template('admin.html')
