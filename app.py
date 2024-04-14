@@ -149,7 +149,7 @@ def total_data():
 
 @app.route('/download_csv', methods=['GET'])
 def download_file():
-    subprocess.run(['python', 'sheetExporter.py'])
+    subprocess.run([python_executable, 'sheetExporter.py'])
     return send_file('hourTotals.csv', as_attachment=True)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -203,7 +203,7 @@ def logout():
 # Add this new route to your Flask application
 @app.route('/calculate_hours', methods=['GET'])
 def calculate_hours():
-    subprocess.run(['python', 'HoursAdder.py'])
+    subprocess.run([python_executable, 'HoursAdder.py'])
     return redirect(url_for('admin'))
 
 @app.route('/archive', methods=['GET'])
