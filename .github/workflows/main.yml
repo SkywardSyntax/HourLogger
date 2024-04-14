@@ -27,6 +27,7 @@ jobs:
       run: |
         sudo screen -X -S gunicorn quit || true
 
+        
     - name: Start Gunicorn server in a new screen
       run: |
         cd $GITHUB_WORKSPACE
