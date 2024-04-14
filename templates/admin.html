@@ -96,7 +96,7 @@
         }
     </style>
 </head>
-<body>
+<body onload ="checkPassword()">
     <div class="container">
         <form>
             <h1>Welcome, Director Of Digital Operations!</h1>
@@ -112,6 +112,17 @@
         </form>
     </div>
     <script>
+        function checkPassword() {
+            var password = prompt("Please enter the admin password:");
+            if (password === "secret") {
+                document.getElementById("adminForm").style.display = "flex";
+            } else {
+                checkPassword();
+            }
+        }
+
+    </script>
+    <script>
         function calculateHours() {
             location.href='/calculate_hours';
             alert('Total hours calculated successfully!');
@@ -124,5 +135,7 @@
             }
         }
     </script>
+
+
 </body>
 </html>
