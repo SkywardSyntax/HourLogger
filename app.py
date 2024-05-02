@@ -84,8 +84,8 @@ class Attendance:
             self.records[id] = {'check_out_time': now}
 
             # Update the relevant line
-            for i, line in enumerate(lines):
-                if line.startswith(f"{id} Checked In"):
+            for i, line in reversed(list(enumerate(lines))):
+                if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
                     lines[i] = f"{id} Checked In at {check_in_time} and Checked Out at {now}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
                     break
 
