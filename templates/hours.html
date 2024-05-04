@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='lol.ico') }}">
+    <title>Hours</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        pre {
+            font-family: 'Courier New', monospace;
+            color: #333;
+            line-height: 1.6;
+        }
+        #searchInput {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 300px;
+            transition: border .3s;
+        }
+        #searchInput:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Total Hours</h1>
+        <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}">        <pre id="data">{{ data }}</pre>
+    </div>
+    <script>
+        var originalData = document.getElementById('data').textContent;
+        var searchInputField = document.getElementById('searchInput');
+        
+        searchInputField.addEventListener('input', function(event) {
+            var searchInput = event.target.value;
+            if (searchInput === '') {
+                document.getElementById('data').textContent = originalData;
+            } else {
+                var lines = originalData.split('\n');
+                var searchResult = lines.filter(line => line.includes(searchInput));
+                document.getElementById('data').textContent = searchResult.join('\n');
+            }
+        });
+    
+        // Modify this event listener
+        searchInputField.addEventListener('keypress', function(event) {
+            var key = event.which || event.keyCode;
+            if (key < 48 || key > 57 || event.key === '\u200B') { // If the key is not a digit or is a zero-width space
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

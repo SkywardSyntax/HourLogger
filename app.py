@@ -239,6 +239,13 @@ def reset_all():
     else:
         return "Reset action canceled."
 
+@app.route('/hours', methods=['GET'])
+def hours():
+    subprocess.run([python_executable, 'HoursAdder.py'])
+    with open('hourTotals.txt', 'r') as f:
+        data = f.read()
+    return render_template('hours.html', data=data)
+
 def confirm_reset():
     # Implement your logic to confirm the reset action here
     # For example, you can check if the admin is logged in or prompt for a password

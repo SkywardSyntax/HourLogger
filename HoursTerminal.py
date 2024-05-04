@@ -42,7 +42,7 @@ class Attendance:
 
     def get_total_time(self, id):
         if id in self.records:
-            return self.records[id]['total_time']
+            return self.records[id]['total_time'] if id in self.records else None;
         else:
             return None
 

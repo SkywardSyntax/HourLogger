@@ -8,6 +8,7 @@ import math
 def calculate_total_time():
     totals = {}
     suspicious_activity = []
+    incomplete_entries = []
 
     # Read existing totals from hourTotals.txt
     if not os.path.exists('hourTotals.txt'):
@@ -39,6 +40,9 @@ def calculate_total_time():
                         totals[id] = {'hours': 0, 'minutes': 0}
                     totals[id]['hours'] += hours
                     totals[id]['minutes'] += minutes
+                else:
+                    # If the line does not match the pattern, it's an incomplete entry
+                    incomplete_entries.append(line)
 
     # Convert minutes to hours
     for id in totals:
@@ -52,8 +56,13 @@ def calculate_total_time():
     today = datetime.date.today()
     shutil.copy('attendance.txt', f'Archives/Archive {today.month}-{today.day}-{today.year}.txt')
 
-    # Clear attendance.txt
-    open('attendance.txt', 'w').close()
+    # Write incomplete entries to attendance.txt and attendanceBackup.txt
+    with open('attendance.txt', 'w') as f:
+        for line in incomplete_entries:
+            f.write(line + '\n')
+    with open('attendanceBackup.txt', 'w') as f:
+        for line in incomplete_entries:
+            f.write(line + '\n')
 
     # Write suspicious activity to file
     with open('suspicious_activity.txt', 'w') as f:
