@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Hours</title>
+    <style>
+        #searchInput {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 300px;
+            transition: border .3s;
+        }
+        #searchInput:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            var originalData = document.getElementById('data').textContent;
+            var searchInputField = document.getElementById('searchInput');
+            
+            searchInputField.addEventListener('input', function(event) {
+                var searchInput = event.target.value;
+                var filteredData = originalData.split('\n').filter(function(line) {
+                    return line.startsWith(searchInput);
+                }).join('\n');
+                document.getElementById('data').textContent = filteredData;
+            });
+        };
+    </script>
+</head>
+<body>
+    <h1>Total Hours</h1>
+    <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}">
+    <pre id="data">{{ data }}</pre>
+</body>
+</html>

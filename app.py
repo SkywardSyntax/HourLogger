@@ -44,10 +44,29 @@ class Attendance:
                 f.write(f"{id} Checked In at {now}\n")
             subprocess.run([python_executable, 'attendanceBackup.py'])
             return "Checked In!"
+    
         
         
         else:
             return "Already Checked In!"
+
+    def check_in_event(self, id, event):
+        print(f"check_in-event called with id {id} and event {event}")
+
+        now = datetime.datetime.now()
+        attendance_file = os.path.join(os.getcwd(), f'attendance-{event}.txt')
+        print(f"attendance file: {attendance_file}")
+        with open(attendance_file, 'a') as f:
+            print("attendance_file: " + attendance_file + " opened")
+            f.write(f"{id} Checked In at {now}\n")  # Use f-string for string formatting
+
+        # Read the file's contents
+        with open(attendance_file, 'r') as f:
+            contents = f.read()
+        print(f"Contents of {attendance_file}:\n{contents}")
+
+        return "Checked In - Event!"
+
 
 
     def check_out(self, id):
@@ -95,6 +114,51 @@ class Attendance:
                 f.writelines(lines)
 
             subprocess.run([python_executable, 'attendanceBackup.py'])            
+            return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
+        else:
+            return "Not Checked In!"
+        
+    def check_out_event(self, id, event):
+        print(f"check_out called with id {id}")
+
+        now = datetime.datetime.now()
+        check_in_time = None
+        attendance_file = f'attendance-{event}.txt'
+        if not os.path.exists(attendance_file):
+            print(f"{attendance_file} does not exist")
+            open(attendance_file, 'w').close()
+        with open(attendance_file, 'r') as f:
+            lines = f.readlines()
+
+        for i, line in enumerate(lines):
+            if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
+                check_in_time_str = line.split(" at ")[1].strip()
+                check_in_time = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f")
+                break
+
+        if check_in_time is not None or (id in self.records and 'check_in_time' in self.records[id]):
+            if check_in_time is None:
+                check_in_time = self.records[id]['check_in_time']
+            time_diff = now - check_in_time
+
+            # Convert time_diff from seconds to minutes and hours
+            total_seconds = time_diff.total_seconds()
+            hours, remainder = divmod(total_seconds, 3600)
+            minutes, _ = divmod(remainder, 60)
+
+            self.records[id] = {'check_out_time': now}
+
+            # Update the relevant line
+            for i, line in reversed(list(enumerate(lines))):
+                if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
+                    lines[i] = f"{id} Checked In at {check_in_time} and Checked Out at {now}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
+                    break
+
+            # Write the updated content back to the file
+            with open(attendance_file, 'w') as f:
+                print("attendance.txt exists")
+                f.writelines(lines)
+        
             return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
         else:
             return "Not Checked In!"
@@ -245,6 +309,121 @@ def hours():
     with open('hourTotals.txt', 'r') as f:
         data = f.read()
     return render_template('hours.html', data=data)
+
+@app.route('/volunteer', methods=['GET', 'POST'])
+def volunteer():
+    if request.method == 'POST':
+        if request.form['password'] != 'secret':
+            return "Invalid password", 401
+        else:
+            return redirect(url_for('volunteer_select'))
+            pass
+    return render_template('volunteer.html')  # Create a new HTML template for this page
+
+@app.route('/volunteer-select-' + random_string, methods=['GET', 'POST'])
+def volunteer_select():
+    if request.method == 'POST':
+        event = request.form.get('event')
+        # Create a new file for each event
+        with open(f'attendance-{event}.txt', 'w') as f:
+            pass
+        return redirect(url_for('volunteer_login', event=event))
+    return render_template('volunteer_select.html')  # Create a new HTML template for this page
+
+@app.route('/volunteer-login', methods=['GET', 'POST'])
+def volunteer_login():
+    if request.method == 'POST':
+        id = request.form.get('id')
+
+        event = request.args.get('event')  # Get the event value from the query string parameter
+        print("volunteer login" + event + " id:" + id)
+        # Use the event-specific attendance file
+        attendance_file = f'attendance-{event}.txt'
+
+        # Check if the user has an incomplete entry in the attendance file
+        with open(attendance_file, 'r') as f:
+            lines = f.readlines()
+        for i, line in enumerate(lines):
+            if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
+                # If the user has an incomplete entry, check them out
+                message = attendance.check_out_event(id, event)
+                break
+        else:
+            # If the user doesn't have an incomplete entry, check them in
+            message = attendance.check_in_event(id, event)
+
+        return message
+
+    return render_template('volunteer_login.html')  # Create a new HTML template for this page
+
+@app.route('/<eventname>-hours', methods=['GET'])
+def event_hours(eventname):
+    event_file = f'attendance-{eventname}.txt'
+    event_totals_file = f'{eventname}-HourTotals.txt'
+    volunteer_totals_file = 'VolunteerHourTotals.txt'
+
+    # Initialize a dictionary to store the total hours for each volunteer
+    event_totals = {}
+    volunteer_totals = {}
+
+    # Read the event-specific attendance file
+    with open(event_file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            match = re.match(r'(\d+)\sChecked In at (.+?) and Checked Out at (.+?), Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
+            if match:
+                id, check_in_time_str, check_out_time_str, hours_str, minutes_str = match.groups()
+
+            hours = int(hours_str) if hours_str.isdigit() else 0
+            minutes = int(minutes_str) if minutes_str.isdigit() else 0
+            total_minutes = hours * 60 + minutes
+
+            # Add the total minutes to the event_totals dictionary
+            if id in event_totals:
+                event_totals[id] += total_minutes
+            else:
+                event_totals[id] = total_minutes
+
+    # Write the event_totals to the event_totals_file
+    with open(event_totals_file, 'w') as f:
+        for id, total_minutes in event_totals.items():
+            hours, minutes = divmod(total_minutes, 60)
+            f.write(f"{id} Total Time: {hours} hours {minutes} minutes\n")
+
+    # If the volunteer_totals_file exists, read it and update the volunteer_totals dictionary
+    if os.path.exists(volunteer_totals_file):
+        with open(volunteer_totals_file, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                id, _, _, rest = line.split(None, 3)
+                hours_str, _, minutes_str = rest.rsplit(None, 2)
+                hours = int(hours_str) if hours_str.isdigit() else 0
+                minutes = int(minutes_str) if minutes_str.isdigit() else 0
+                total_minutes = hours * 60 + minutes
+
+                # Add the total minutes to the volunteer_totals dictionary
+                if id in volunteer_totals:
+                    volunteer_totals[id] += total_minutes
+                else:
+                    volunteer_totals[id] = total_minutes
+
+    # Update the volunteer_totals dictionary with the event_totals
+    for id, total_minutes in event_totals.items():
+        if id in volunteer_totals:
+            volunteer_totals[id] += total_minutes
+        else:
+            volunteer_totals[id] = total_minutes
+
+    # Write the updated volunteer_totals to the volunteer_totals_file
+    with open(volunteer_totals_file, 'w') as f:
+        for id, total_minutes in volunteer_totals.items():
+            hours, minutes = divmod(total_minutes, 60)
+            f.write(f"{id} Total Time: {hours} hours {minutes} minutes\n")
+    
+    with open(event_totals_file, 'r') as f:
+        data = f.read()
+
+    return render_template('event_hours.html', data=data)  # Create a new HTML template for this page
 
 def confirm_reset():
     # Implement your logic to confirm the reset action here
