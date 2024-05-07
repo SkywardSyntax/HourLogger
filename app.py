@@ -322,6 +322,8 @@ def volunteer():
 
 @app.route('/volunteer-select-' + random_string, methods=['GET', 'POST'])
 def volunteer_select():
+    if 'username' not in session or session['username'] != 'admin':
+        return redirect(url_for('login'))
     if request.method == 'POST':
         event = request.form.get('event')
         # Create a new file for each event
@@ -452,5 +454,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
