@@ -55,7 +55,7 @@
             width: 100%;
         }
 
-        input[type="submit"] {
+        input[type="submit"], input[type="button"] {
             width: 85%; /* Make the button full width */
             background-color: #4CAF50;
             color: black;
@@ -70,7 +70,7 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* Add shadow for 3D effect */
         }
 
-        input[type="submit"]:hover {
+        input[type="submit"]:hover, input[type="button"]:hover {
             background-color: #45a049; /* Change color on hover */
             box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); /* Increase shadow on hover for more depth */
         }
@@ -92,6 +92,7 @@
             <label for="password">Password:</label><br>
             <input type="password" id="password" name="password"><br>
             <input type="submit" value="Login">
+            <input type="button" value="Volunteer Login" onclick="location.href='/volunteer+HASHSTRING'">
             {% if error %}
             <p id="message">{{ error }}</p>
             {% endif %}
