@@ -81,6 +81,10 @@
             padding: 10px; /* Add some padding */
             border-radius: 5px; /* Round the corners */
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add a subtle shadow */
+            visibility: hidden; /* Make it invisible by default */
+        }
+        #message:not(:empty) {
+            visibility: visible; /* Make it visible when it has content */
         }
     </style>
 </head>

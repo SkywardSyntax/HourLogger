@@ -14,6 +14,12 @@
             min-height: 100vh;
         }
 
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            height: 300px;
+        }
+
         form {
             background-color: #fff;
             padding: 20px;
@@ -27,57 +33,79 @@
             font-weight: bold;
         }
 
-        input[type="text"] {
-            width: 80%;
+        .form-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .input-section {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .input-section input[type="text"] {
+            width: 72.2%;
             padding: 10px;
             margin: 10px 0;
             border-radius: 4px;
             border: 1px solid #ccc;
             font-size: 24px;
-        } 
+        }
 
-        input[type="submit"] {
-            width: 85%;
+        .input-section input[type="submit"] {
+            width: 20%;
             background-color: #4CAF50;
-            color: black;
-            padding: 5px 5px;
+            color: white;
+            padding: 10px 10px;
             border: none;
-            font-size: 25px;
-            border-radius: 10px;
+            font-size: 16px;
+            border-radius: 4px;
             cursor: pointer;
             display: block;
             margin: 10px 0;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         }
-
-        input[type="submit"]:hover {
-            background-color: #45a049;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-        }
-
-        /* Style for the message box */
-        .message-box {
+        #message {
             margin-top: 20px;
             font-size: 18px;
             color: rgb(53, 53, 53);
-            font-weight: bold;
             border: 2px solid #4CAF50; /* Add a green border */
+            font-weight: bold;
             padding: 10px; /* Add some padding */
             border-radius: 5px; /* Round the corners */
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add a subtle shadow */
+            visibility: hidden; /* Make it invisible by default */
+        }
+
+        #message:not(:empty) {
+            visibility: visible; /* Make it visible when it has content */
         }
     </style>
 </head>
 <body>
-    <form method="POST">
-        <label for="id">Enter ID:</label>
-        <input type="text" id="id" name="id">
-        <input type="submit" value="Submit">
-        <!-- Message box to display check-in/check-out messages -->
-        <div class="message-box">
-            {{ message }}
-        </div>
-    </form>
+    <div class="container">
+        <form method="POST">
+            <label for="id">Enter ID:</label>
+            <div class="form-content">
+                <div class="input-section">
+                    <input type="text" id="id" name="id" oninput="clearMessage()">
+                    <input type="submit" value="Submit">
+                </div>
+                <p id="message">{{ message }}</p>
+            </div>
+        </form>
+    </div>
+    <script>
+        window.onload = function() {
+            var messageElement = document.getElementById('message');
+            if (messageElement.innerHTML.trim() !== '') {
+                setTimeout(function() {
+                    messageElement.innerHTML = '';
+                }, 5000);
+            }
+        };
+    </script>
 </body>
 </html>

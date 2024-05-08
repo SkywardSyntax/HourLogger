@@ -336,6 +336,7 @@ def volunteer_select():
 
 @app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
 def volunteer_login():
+    message =''
     if request.method == 'POST':
         id = request.form.get('id')
 
@@ -356,9 +357,7 @@ def volunteer_login():
             # If the user doesn't have an incomplete entry, check them in
             message = attendance.check_in_event(id, event)
 
-        return message
-
-    return render_template('volunteer_login.html')  # Create a new HTML template for this page
+    return render_template('volunteer_login.html', message=message)  # Create a new HTML template for this page
 
 @app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
