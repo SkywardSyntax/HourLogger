@@ -227,6 +227,10 @@ def login():
             return redirect('/' + random_string)
     return render_template('login.html', error=error)
 
+@app.route('/volunteer+HASHSTRING', methods=['GET'])
+def handle_volunteer():
+    return redirect("/volunteer" + r_string)
+
 @app.route('/' + random_string, methods=['GET', 'POST'])
 def home():
     message = ''
@@ -316,20 +320,18 @@ def volunteer():
         if request.form['password'] != 'secret':
             return "Invalid password", 401
         else:
-            return redirect(url_for('volunteer_select' + r_string))
+            return redirect('/volunteer-select' + r_string)
             pass
     return render_template('volunteer.html')  # Create a new HTML template for this page
 
-@app.route('/volunteer-select-' + random_string, methods=['GET', 'POST'])
+@app.route('/volunteer-select' + r_string, methods=['GET', 'POST'])
 def volunteer_select():
-    if 'username' not in session or session['username'] != 'admin':
-        return redirect(url_for('login'))
     if request.method == 'POST':
         event = request.form.get('event')
         # Create a new file for each event
         with open(f'attendance-{event}.txt', 'w') as f:
             pass
-        return redirect(url_for('volunteer_login' + r_string, event=event))
+        return redirect(url_for('volunteer_login', event=event))
     return render_template('volunteer_select.html')  # Create a new HTML template for this page
 
 @app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
