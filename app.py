@@ -310,13 +310,13 @@ def hours():
         data = f.read()
     return render_template('hours.html', data=data)
 
-@app.route('/volunteer', methods=['GET', 'POST'])
+@app.route('/volunteer' + r_string, methods=['GET', 'POST'])
 def volunteer():
     if request.method == 'POST':
         if request.form['password'] != 'secret':
             return "Invalid password", 401
         else:
-            return redirect(url_for('volunteer_select'))
+            return redirect(url_for('volunteer_select' + r_string))
             pass
     return render_template('volunteer.html')  # Create a new HTML template for this page
 
@@ -329,10 +329,10 @@ def volunteer_select():
         # Create a new file for each event
         with open(f'attendance-{event}.txt', 'w') as f:
             pass
-        return redirect(url_for('volunteer_login', event=event))
+        return redirect(url_for('volunteer_login' + r_string, event=event))
     return render_template('volunteer_select.html')  # Create a new HTML template for this page
 
-@app.route('/volunteer-login', methods=['GET', 'POST'])
+@app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
 def volunteer_login():
     if request.method == 'POST':
         id = request.form.get('id')
@@ -358,7 +358,7 @@ def volunteer_login():
 
     return render_template('volunteer_login.html')  # Create a new HTML template for this page
 
-@app.route('/<eventname>-hours', methods=['GET'])
+@app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
     event_file = f'attendance-{eventname}.txt'
     event_totals_file = f'{eventname}-HourTotals.txt'
