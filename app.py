@@ -11,13 +11,16 @@ import threading
 import os
 from flask import send_from_directory
 import sys
-
+import time
 
 app = Flask(__name__)
 app.secret_key = 'skywardsyntazx'
 random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 r_string = ("/" + random_string)
 python_executable = sys.executable
+
+# Implement a global dictionary to track the last request time for each client IP address.
+client_cooldowns = {}
 
 class Attendance:
     def __init__(self):
@@ -198,8 +201,18 @@ class Attendance:
 
 attendance = Attendance()  # Create an instance of Attendance
 
+def check_client_cooldown(client_ip):
+    current_time = time.time()
+    if client_ip in client_cooldowns and current_time - client_cooldowns[client_ip] < 10:
+        return True
+    client_cooldowns[client_ip] = current_time
+    return False
+
 @app.route('/raw_hours', methods=['GET'])
 def attendance_data():
+    client_ip = request.remote_addr
+    if check_client_cooldown(client_ip):
+        return "You are on cooldown. Please wait a few seconds before making another request.", 429
     with open('attendance.txt', 'r') as f:
         data = f.read()
     return Response(data, mimetype='text/plain')
@@ -207,12 +220,18 @@ def attendance_data():
 
 @app.route('/total_hours', methods=['GET'])
 def total_data():
+    client_ip = request.remote_addr
+    if check_client_cooldown(client_ip):
+        return "You are on cooldown. Please wait a few seconds before making another request.", 429
     with open('hourTotals.txt', 'r') as f:
         data = f.read()
     return Response(data, mimetype='text/plain')
 
 @app.route('/download_csv', methods=['GET'])
 def download_file():
+    client_ip = request.remote_addr
+    if check_client_cooldown(client_ip):
+        return "You are on cooldown. Please wait a few seconds before making another request.", 429
     subprocess.run([python_executable, 'sheetExporter.py'])
     return send_file('hourTotals.csv', as_attachment=True)
 
@@ -233,6 +252,9 @@ def handle_volunteer():
 
 @app.route('/' + random_string, methods=['GET', 'POST'])
 def home():
+    client_ip = request.remote_addr
+    if check_client_cooldown(client_ip):
+        return "You are on cooldown. Please wait a few seconds before making another request.", 429
     message = ''
     if request.method == 'POST':
         id = request.form.get('id')
@@ -271,6 +293,9 @@ def logout():
 # Add this new route to your Flask application
 @app.route('/calculate_hours', methods=['GET'])
 def calculate_hours():
+    client_ip = request.remote_addr
+    if check_client_cooldown(client_ip):
+        return "You are on cooldown. Please wait a few seconds before making another request.", 429
     subprocess.run([python_executable, 'HoursAdder.py'])
     return redirect(url_for('admin'))
 
@@ -309,6 +334,9 @@ def reset_all():
 
 @app.route('/hours', methods=['GET'])
 def hours():
+    client_ip = request.remote_addr
+    if check_client_cooldown(client_ip):
+        return "You are on cooldown. Please wait a few seconds before making another request.", 429
     subprocess.run([python_executable, 'HoursAdder.py'])
     with open('hourTotals.txt', 'r') as f:
         data = f.read()
