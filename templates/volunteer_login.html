@@ -55,6 +55,18 @@
             background-color: #45a049;
             box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
         }
+
+        /* Style for the message box */
+        .message-box {
+            margin-top: 20px;
+            font-size: 18px;
+            color: rgb(53, 53, 53);
+            font-weight: bold;
+            border: 2px solid #4CAF50; /* Add a green border */
+            padding: 10px; /* Add some padding */
+            border-radius: 5px; /* Round the corners */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add a subtle shadow */
+        }
     </style>
 </head>
 <body>
@@ -62,6 +74,10 @@
         <label for="id">Enter ID:</label>
         <input type="text" id="id" name="id">
         <input type="submit" value="Submit">
+        <!-- Message box to display check-in/check-out messages -->
+        <div class="message-box">
+            {{ message }}
+        </div>
     </form>
 </body>
 </html>

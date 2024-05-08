@@ -61,6 +61,24 @@
             background-color: #45a049;
             box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
         }
+
+        /* Move the volunteer login button to the bottom right corner and change its color */
+        input[type="button"] {
+            position: fixed; /* Make the button fixed at the bottom right corner */
+            bottom: 20px;
+            right: 20px;
+            width: auto; /* Adjust width automatically */
+            background-color: #007bff; /* Change the button color to blue */
+            color: white; /* Change text color to white */
+            padding: 10px 20px; /* Adjust padding */
+            font-size: 16px; /* Adjust font size */
+            border-radius: 5px; /* Round the corners */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add a subtle shadow */
+        }
+
+        input[type="button"]:hover {
+            background-color: #0056b3; /* Darken the button color on hover */
+        }
     </style>
 </head>
 <body>
@@ -71,5 +89,7 @@
             <input type="submit" value="Submit">
         </form>
     </div>
+    <!-- Relocated volunteer login button to the bottom right corner and changed its color to blue -->
+    <input type="button" value="Volunteer Login" onclick="location.href='/volunteer+HASHSTRING'">
 </body>
 </html>

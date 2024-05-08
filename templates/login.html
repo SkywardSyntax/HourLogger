@@ -55,7 +55,7 @@
             width: 100%;
         }
 
-        input[type="submit"], input[type="button"] {
+        input[type="submit"] {
             width: 85%; /* Make the button full width */
             background-color: #4CAF50;
             color: black;
@@ -70,9 +70,27 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* Add shadow for 3D effect */
         }
 
-        input[type="submit"]:hover, input[type="button"]:hover {
+        input[type="submit"]:hover {
             background-color: #45a049; /* Change color on hover */
             box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); /* Increase shadow on hover for more depth */
+        }
+
+        /* Move the volunteer login button to the bottom right corner and change its color */
+        input[type="button"] {
+            position: fixed; /* Make the button fixed at the bottom right corner */
+            bottom: 20px;
+            right: 20px;
+            width: auto; /* Adjust width automatically */
+            background-color: #007bff; /* Change the button color to blue */
+            color: white; /* Change text color to white */
+            padding: 10px 20px; /* Adjust padding */
+            font-size: 16px; /* Adjust font size */
+            border-radius: 5px; /* Round the corners */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add a subtle shadow */
+        }
+
+        input[type="button"]:hover {
+            background-color: #0056b3; /* Darken the button color on hover */
         }
 
         #message {
