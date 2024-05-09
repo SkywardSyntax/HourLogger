@@ -41,6 +41,16 @@
             border-color: #007BFF;
             outline: none;
         }
+        /* Style for version display */
+        .version-display {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: black;
+            padding: 5px;
+            font-size: 12px;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -49,6 +59,7 @@
         <h1>Total Hours</h1>
         <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}">        <pre id="data">{{ data }}</pre>
     </div>
+    <div class="version-display">Version: 1.0.0</div>
     <script>
         var originalData = document.getElementById('data').textContent;
         var searchInputField = document.getElementById('searchInput');

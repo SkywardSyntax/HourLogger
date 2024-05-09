@@ -4,6 +4,18 @@
     <link rel="icon" href="{{ url_for('static', filename='logo.ico') }}">
 
     <title>Archive</title>
+    <style>
+        /* Style for version display */
+        .version-display {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: black;
+            padding: 5px;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
     <h1>Archive</h1>
@@ -15,5 +27,6 @@
         </li>
         {% endfor %}
     </ul>
+    <div class="version-display">Version: 1.0.0</div>
 </body>
 </html>
