@@ -21,6 +21,7 @@ python_executable = sys.executable
 
 # Implement a global dictionary to track the last request time for each client IP address.
 client_cooldowns = {}
+client_request_counts = {}
 
 class Attendance:
     def __init__(self):
@@ -203,16 +204,22 @@ attendance = Attendance()  # Create an instance of Attendance
 
 def check_client_cooldown(client_ip):
     current_time = time.time()
-    if client_ip in client_cooldowns and current_time - client_cooldowns[client_ip] < 10:
-        return True
-    client_cooldowns[client_ip] = current_time
+    if client_ip not in client_request_counts:
+        client_request_counts[client_ip] = [current_time]
+    else:
+        client_request_counts[client_ip].append(current_time)
+        client_request_counts[client_ip] = [t for t in client_request_counts[client_ip] if current_time - t <= 1]
+        if len(client_request_counts[client_ip]) > 3:
+            if client_ip not in client_cooldowns or current_time - client_cooldowns[client_ip] >= 10:
+                client_cooldowns[client_ip] = current_time
+                return True
     return False
 
 @app.route('/raw_hours', methods=['GET'])
 def attendance_data():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
-        return "You are on cooldown. Please wait a few seconds before making another request.", 429
+        return redirect(url_for('cooldown'))
     with open('attendance.txt', 'r') as f:
         data = f.read()
     return Response(data, mimetype='text/plain')
@@ -222,7 +229,7 @@ def attendance_data():
 def total_data():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
-        return "You are on cooldown. Please wait a few seconds before making another request.", 429
+        return redirect(url_for('cooldown'))
     with open('hourTotals.txt', 'r') as f:
         data = f.read()
     return Response(data, mimetype='text/plain')
@@ -231,7 +238,7 @@ def total_data():
 def download_file():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
-        return "You are on cooldown. Please wait a few seconds before making another request.", 429
+        return redirect(url_for('cooldown'))
     subprocess.run([python_executable, 'sheetExporter.py'])
     return send_file('hourTotals.csv', as_attachment=True)
 
@@ -254,7 +261,7 @@ def handle_volunteer():
 def home():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
-        return "You are on cooldown. Please wait a few seconds before making another request.", 429
+        return redirect(url_for('cooldown'))
     message = ''
     if request.method == 'POST':
         id = request.form.get('id')
@@ -295,7 +302,7 @@ def logout():
 def calculate_hours():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
-        return "You are on cooldown. Please wait a few seconds before making another request.", 429
+        return redirect(url_for('cooldown'))
     subprocess.run([python_executable, 'HoursAdder.py'])
     return redirect(url_for('admin'))
 
@@ -336,7 +343,7 @@ def reset_all():
 def hours():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
-        return "You are on cooldown. Please wait a few seconds before making another request.", 429
+        return redirect(url_for('cooldown'))
     subprocess.run([python_executable, 'HoursAdder.py'])
     with open('hourTotals.txt', 'r') as f:
         data = f.read()
@@ -477,6 +484,9 @@ def clear_files():
     if os.path.exists('hourTotals.csv'):
         os.remove('hourTotals.csv')
 
+@app.route('/cooldown', methods=['GET'])
+def cooldown():
+    return render_template('cooldown.html')
 
 def main():
     app.run(debug=True)
