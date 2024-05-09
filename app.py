@@ -136,7 +136,7 @@ class Attendance:
 
         for i, line in enumerate(lines):
             if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
-                check_in_time_str = line.split(" at ")[1].strip()
+                check_in_time_str = line.split(" at ")[1.strip()
                 check_in_time = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f")
                 break
 
@@ -351,13 +351,14 @@ def hours():
 
 @app.route('/volunteer' + r_string, methods=['GET', 'POST'])
 def volunteer():
+    error = None
     if request.method == 'POST':
         if request.form['password'] != 'secret':
-            return "Invalid password", 401
+            error = "Invalid password"
+            return render_template('volunteer.html', error=error)  # Modify to use render_template with error message
         else:
             return redirect('/volunteer-select' + r_string)
-            pass
-    return render_template('volunteer.html')  # Create a new HTML template for this page
+    return render_template('volunteer.html', error=error)  # Modify to include error handling
 
 @app.route('/volunteer-select' + r_string, methods=['GET', 'POST'])
 def volunteer_select():
@@ -392,7 +393,7 @@ def volunteer_login():
             # If the user doesn't have an incomplete entry, check them in
             message = attendance.check_in_event(id, event)
 
-    return render_template('volunteer_login.html', message=message)  # Create a new HTML template for this page
+    return render_template('volunteer_login.html', message=message, event=event)  # Modify to include event name in the template
 
 @app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
@@ -461,7 +462,7 @@ def event_hours(eventname):
     with open(event_totals_file, 'r') as f:
         data = f.read()
 
-    return render_template('event_hours.html', data=data)  # Create a new HTML template for this page
+    return render_template('event_hours.html', data=data, eventname=eventname)  # Modify to include event name in the template
 
 def confirm_reset():
     # Implement your logic to confirm the reset action here
