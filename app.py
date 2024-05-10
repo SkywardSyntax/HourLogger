@@ -136,7 +136,7 @@ class Attendance:
 
         for i, line in enumerate(lines):
             if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
-                check_in_time_str = line.split(" at ")[1.strip()
+                check_in_time_str = line.split(" at ")[1].strip()
                 check_in_time = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f")
                 break
 
@@ -372,7 +372,8 @@ def volunteer_select():
 
 @app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
 def volunteer_login():
-    message =''
+    message = ''
+    event = request.args.get('event')
     if request.method == 'POST':
         id = request.form.get('id')
 
