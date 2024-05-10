@@ -354,7 +354,7 @@ def volunteer():
     error = None
     if request.method == 'POST':
         if request.form['password'] != 'secret':
-            error = "Invalid password"
+            error = "Incorrect Credentials"
             return render_template('volunteer.html', error=error)  # Modify to use render_template with error message
         else:
             return redirect('/volunteer-select' + r_string)

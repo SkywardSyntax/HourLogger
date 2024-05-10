@@ -92,10 +92,24 @@
             padding: 5px;
             font-size: 12px;
         }
+        /* Add a dedicated bubble for the event name */
+        #event {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            color: #000;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 18px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <h2 id ="event">Event: {{ event }}</h2>
+    <div id="event">Event: {{ event }}</div>
     <div class="container">
         <form method="POST">
             <label for="id">Enter ID:</label>
