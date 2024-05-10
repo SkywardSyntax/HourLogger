@@ -23,7 +23,7 @@ python_executable = sys.executable
 client_cooldowns = {}
 client_request_counts = {}
 
-class Attendance:
+class Atendance:
     def __init__(self):
         # Read the data from attendanceBackup.txt
         with open('attendanceBackup.txt', 'r') as backup_file:
