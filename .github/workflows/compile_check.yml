@@ -1,0 +1,37 @@
+name: Compile and Runtime Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  compile_runtime_check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flask gunicorn
+
+    - name: Host app.py with gunicorn
+      run: timeout 60 gunicorn --bind 0.0.0.0:8000 app:app
+
+    - name: Check if gunicorn is still running
+      run: |
+        if pgrep gunicorn; then
+          echo "Gunicorn is running - no compile/runtime issues detected."
+          exit 0
+        else
+          echo "Gunicorn is not running - possible compile/runtime issues detected."
+          exit 1
+        fi
