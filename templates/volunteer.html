@@ -33,7 +33,7 @@
             font-weight: bold;
         }
 
-        input[type="password"] {
+        input[type="text"], input[type="password"] {
             width: 80%;
             padding: 10px;
             margin: 10px 0;
@@ -70,6 +70,8 @@
 <body>
     <div class="container">
         <form method="POST">
+            <label for="username">Enter Username:</label>
+            <input type="text" id="username" name="username">
             <label for="password">Enter Password:</label>
             <input type="password" id="password" name="password">
             <input type="submit" value="Submit">
