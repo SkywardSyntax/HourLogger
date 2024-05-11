@@ -70,18 +70,12 @@
 <body>
     <div class="container">
         <form method="POST">
-            <label for="username">Enter Username:</label>
-            <input type="text" id="username" name="username">
-            <label for="password">Enter Password:</label>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="admin">
+            <label for="password">Password:</label>
             <input type="password" id="password" name="password">
             <input type="submit" value="Submit">
         </form>
     </div>
-    <!-- Change the button text to "Default Login" and update its action to redirect to the Default Login page (/login) -->
-    <!-- Style the "Default Login" button to match the "Volunteer Login" button on the default login page -->
-    <!-- Move the "Default Login" button to the bottom right corner of the page -->
-    <input type="button" value="Default Login" onclick="location.href='/login'" style="position: fixed; bottom: 20px; right: 20px; width: auto; background-color: #007bff; color: white; padding: 10px 20px; font-size: 16px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-    <!-- Version display added as per plan
-    <div style="position: fixed; bottom: 0; left: 0; background-color: rgba(255, 255, 255, 0.5); color: black; padding: 5px; font-size: 12px;">Version: 1.0.0</div>
 </body>
 </html>
