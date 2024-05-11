@@ -355,7 +355,7 @@ def volunteer():
     if request.method == 'POST':
         username = request.form.get('username')  # Added to handle username input
         password = request.form.get('password')
-        if username != 'volunteer' or password != 'secret':  # Modified to check both username and password
+        if username != 'admin' or password != 'secret':  # Modified to check both username and password
             error = "Incorrect Credentials"
             return render_template('volunteer.html', error=error)  # Modify to use render_template with error message
         else:
