@@ -23,6 +23,10 @@ python_executable = sys.executable
 client_cooldowns = {}
 client_request_counts = {}
 
+# Read version number from version.txt
+with open('version.txt', 'r') as version_file:
+    version_number = version_file.read().strip()
+
 class Attendance:
     def __init__(self):
         # Read the data from attendanceBackup.txt
@@ -251,7 +255,7 @@ def login():
         else:
             session['username'] = request.form['username']
             return redirect('/' + random_string)
-    return render_template('login.html', error=error)
+    return render_template('login.html', error=error, version=version_number)
 
 @app.route('/volunteer+HASHSTRING', methods=['GET'])
 def handle_volunteer():
@@ -266,13 +270,13 @@ def home():
     if request.method == 'POST':
         id = request.form.get('id')
         message = attendance.check_status_and_act(id)
-    return render_template('home.html', message=message)
+    return render_template('home.html', message=message, version=version_number)
 
 
 @app.route('/WestwoodRoboticsAdmin', methods=['GET'])
 def admin():
     if 'username' in session and session['username'] == 'admin':
-        return render_template('admin.html')
+        return render_template('admin.html', version=version_number)
     else:
         session['next_url'] = url_for('admin')
         return redirect(url_for('loginz'))
@@ -288,7 +292,7 @@ def loginz():
             return redirect(next_url)
         else:
             return "Invalid username or password", 401
-    return render_template('login.html')
+    return render_template('login.html', version=version_number)
 
 
     
@@ -311,7 +315,7 @@ def archives():
     # Get the list of .txt files in the Archives folder
     archive_files = [file for file in os.listdir('Archives') if file.endswith('.txt')]
     if 'username' in session and session['username'] == 'admin':
-        return render_template('archive.html', archive_files=archive_files)
+        return render_template('archive.html', archive_files=archive_files, version=version_number)
     else:
         session['next_url'] = url_for('admin')
         return redirect(url_for('loginz'))
@@ -347,7 +351,7 @@ def hours():
     subprocess.run([python_executable, 'HoursAdder.py'])
     with open('hourTotals.txt', 'r') as f:
         data = f.read()
-    return render_template('hours.html', data=data)
+    return render_template('hours.html', data=data, version=version_number)
 
 @app.route('/volunteer' + r_string, methods=['GET', 'POST'])
 def volunteer():
@@ -357,10 +361,10 @@ def volunteer():
         password = request.form.get('password')
         if username != 'admin' or password != 'secret':  # Modified to check both username and password
             error = "Incorrect Credentials"
-            return render_template('volunteer.html', error=error)  # Modify to use render_template with error message
+            return render_template('volunteer.html', error=error, version=version_number)  # Modify to use render_template with error message
         else:
             return redirect('/volunteer-select' + r_string)
-    return render_template('volunteer.html', error=error)  # Modify to include error handling
+    return render_template('volunteer.html', error=error, version=version_number)  # Modify to include error handling
 
 @app.route('/volunteer-select' + r_string, methods=['GET', 'POST'])
 def volunteer_select():
@@ -370,7 +374,7 @@ def volunteer_select():
         with open(f'attendance-{event}.txt', 'w') as f:
             pass
         return redirect(url_for('volunteer_login', event=event))
-    return render_template('volunteer_select.html')  # Create a new HTML template for this page
+    return render_template('volunteer_select.html', version=version_number)  # Create a new HTML template for this page
 
 @app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
 def volunteer_login():
@@ -396,7 +400,7 @@ def volunteer_login():
             # If the user doesn't have an incomplete entry, check them in
             message = attendance.check_in_event(id, event)
 
-    return render_template('volunteer_login.html', message=message, event=event)  # Modify to include event name in the template
+    return render_template('volunteer_login.html', message=message, event=event, version=version_number)  # Modify to include event name in the template
 
 @app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
@@ -465,7 +469,7 @@ def event_hours(eventname):
     with open(event_totals_file, 'r') as f:
         data = f.read()
 
-    return render_template('event_hours.html', data=data, eventname=eventname)  # Modify to include event name in the template
+    return render_template('event_hours.html', data=data, eventname=eventname, version=version_number)  # Modify to include event name in the template
 
 def confirm_reset():
     # Implement your logic to confirm the reset action here
@@ -490,7 +494,7 @@ def clear_files():
 
 @app.route('/cooldown', methods=['GET'])
 def cooldown():
-    return render_template('cooldown.html')
+    return render_template('cooldown.html', version=version_number)
 
 def main():
     app.run(debug=True)
