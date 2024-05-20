@@ -63,17 +63,19 @@
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <form method="POST">
-            <input type="hidden" name="event" value="Event1">
-            <input type="submit" value="Event1">
-        </form>
-        <form method="POST">
-            <input type="hidden" name="event" value="Event2">
-            <input type="submit" value="Event2">
-        </form>
-    </div>
-    <!-- Add more forms for more events -->
+    <!-- Dynamically load events from event_list.txt -->
+    {% with open('event_list.txt', 'r') as file %}
+        {% set events = file.readlines() %}
+        <div class="form-container">
+            {% for event in events %}
+                {% set event_details = event.strip().split(' | ') %}
+                <form method="POST">
+                    <input type="hidden" name="event" value="{{ event_details[0] }}">
+                    <input type="submit" value="{{ event_details[1] }}">
+                </form>
+            {% endfor %}
+        </div>
+    {% endwith %}
     <div class="version-display">{{ version }}</div>
 </body>
 </html>
