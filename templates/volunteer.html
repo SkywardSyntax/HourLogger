@@ -75,6 +75,9 @@
             <label for="password">Password:</label>
             <input type="password" id="password" name="password">
             <input type="submit" value="Submit">
+            {% if error %}
+            <p style="color: red;">{{ error }}</p>
+            {% endif %}
         </form>
     </div>
 </body>
