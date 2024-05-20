@@ -360,7 +360,7 @@ def volunteer():
         username = request.form.get('username')  # Added to handle username input
         password = request.form.get('password')
         if username != 'admin' or password != 'secret':  # Modified to check both username and password
-            error = "Incorrect Credentials"
+            error = "Invalid Credentials. Please try again."
         else:
             return redirect('/volunteer-select' + r_string)
     return render_template('volunteer.html', error=error, version=version_number)  # Modify to include error handling
