@@ -369,21 +369,28 @@ def volunteer():
 def volunteer_select():
     if request.method == 'POST':
         event = request.form.get('event')
+        eventName = request.form.get('eventName')
         # Create a new file for each event
         with open(f'attendance-{event}.txt', 'w') as f:
             pass
-        return redirect(url_for('volunteer_login', event=event))
-    return render_template('volunteer_select.html', version=version_number)  # Create a new HTML template for this page
+        return redirect(url_for('volunteer_login', event=event, eventName=eventName))
+    
+    # Read events from event_list.txt
+    with open('event_list.txt', 'r') as file:
+        events = file.readlines()
+    
+    return render_template('volunteer_select.html', events=events, version=version_number)
 
 @app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
 def volunteer_login():
     message = ''
-    event = request.args.get('event')
+    eventName = request.args.get('eventName')
+    event = request.args.get('event')  # Get the event value from the query string parameter
     if request.method == 'POST':
         id = request.form.get('id')
 
-        event = request.args.get('event')  # Get the event value from the query string parameter
-        print("volunteer login" + event + " id:" + id)
+
+        print("volunteer login" + eventName + " id:" + id)
         # Use the event-specific attendance file
         attendance_file = f'attendance-{event}.txt'
 
@@ -399,7 +406,7 @@ def volunteer_login():
             # If the user doesn't have an incomplete entry, check them in
             message = attendance.check_in_event(id, event)
 
-    return render_template('volunteer_login.html', message=message, event=event, version=version_number)  # Modify to include event name in the template
+    return render_template('volunteer_login.html', message=message, event=eventName, version=version_number)  # Modify to include event name in the template
 
 @app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
