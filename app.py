@@ -246,11 +246,18 @@ def download_file():
     subprocess.run([python_executable, 'sheetExporter.py'])
     return send_file('hourTotals.csv', as_attachment=True)
 
+def read_login_credentials():
+    with open('login.txt', 'r') as file:
+        username = file.readline().strip()
+        password = file.readline().strip()
+    return username, password
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != 'admin' or request.form['password'] != 'secret':
+        username, password = read_login_credentials()
+        if request.form['username'] != username or request.form['password'] != password:
             error = 'Invalid Credentials. Please try again.'
         else:
             session['username'] = request.form['username']
@@ -293,6 +300,7 @@ def loginz():
         else:
             return "Invalid username or password", 401
     return render_template('login.html', version=version_number)
+
 
 
     
@@ -357,13 +365,12 @@ def hours():
 def volunteer():
     error = None
     if request.method == 'POST':
-        username = request.form.get('username')  # Added to handle username input
-        password = request.form.get('password')
-        if username != 'admin' or password != 'secret':  # Modified to check both username and password
+        username, password = read_login_credentials()
+        if request.form['username'] != username or request.form['password'] != password:
             error = "Invalid Credentials. Please try again."
         else:
             return redirect('/volunteer-select' + r_string)
-    return render_template('volunteer.html', error=error, version=version_number)  # Modify to include error handling
+    return render_template('volunteer.html', error=error, version=version_number)
 
 @app.route('/volunteer-select' + r_string, methods=['GET', 'POST'])
 def volunteer_select():
