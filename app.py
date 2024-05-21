@@ -365,9 +365,10 @@ def hours():
 def volunteer():
     error = None
     if request.method == 'POST':
-        username = request.form.get('username')  # Added to handle username input
-        password = request.form.get('password')
-        if username != 'admin' or password != 'secret':  # Modified to check both username and password
+        inputUsername = request.form.get('username')  # Added to handle username input
+        inputPassword = request.form.get('password')
+        username, password = read_login_credentials()
+        if inputUsername != username or inputPassword != password:  # Modified to check both username and password
             error = "Invalid Credentials. Please try again."
         else:
             return redirect('/volunteer-select' + r_string)
