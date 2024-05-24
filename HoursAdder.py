@@ -1,9 +1,17 @@
 import csv
 import re
 import os
-import shutil
 import datetime
 import math
+
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort(left) + middle + quicksort(right)
 
 def calculate_total_time():
     totals = {}
@@ -26,7 +34,8 @@ def calculate_total_time():
         open('attendance.txt', 'w').close()
     else:
         with open('attendance.txt', 'r') as f:
-            for line in f:
+            lines = f.readlines()
+            for line in lines:
                 line = line.strip()  # Strip newline character
                 match = re.match(r'(\d+) Checked In at .+ and Checked Out at .+, Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
                 if match:
@@ -50,11 +59,19 @@ def calculate_total_time():
         totals[id]['hours'] += hours
         totals[id]['minutes'] = minutes
 
-    # Archive attendance.txt
-    if not os.path.exists('Archives'):
-        os.makedirs('Archives')
-    today = datetime.date.today()
-    shutil.copy('attendance.txt', f'Archives/Archive {today.month}-{today.day}-{today.year}.txt')
+    # Append attendance.txt to archive.txt
+    with open('attendance.txt', 'r') as attendance, open('archive.txt', 'a') as archive:
+        archive.writelines(attendance.readlines())
+
+    # Sort archive.txt
+    with open('archive.txt', 'r') as archive:
+        lines = archive.readlines()
+        sorted_lines = quicksort(lines)
+    with open('archive.txt', 'w') as archive:
+        archive.writelines(sorted_lines)
+
+    # Clear attendance.txt
+    open('attendance.txt', 'w').close()
 
     # Write incomplete entries to attendance.txt and attendanceBackup.txt
     with open('attendance.txt', 'w') as f:
