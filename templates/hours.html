@@ -70,7 +70,7 @@
                 document.getElementById('data').textContent = originalData;
             } else {
                 var lines = originalData.split('\n');
-                var searchResult = lines.filter(line => line.includes(searchInput));
+                var searchResult = lines.filter(line => line.startsWith(searchInput));
                 document.getElementById('data').textContent = searchResult.join('\n');
             }
         });
