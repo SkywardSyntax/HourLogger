@@ -12,6 +12,7 @@ import os
 from flask import send_from_directory
 import sys
 import time
+import csv
 
 app = Flask(__name__)
 app.secret_key = 'skywardsyntazx'
@@ -522,6 +523,57 @@ def clear_files():
 @app.route('/cooldown', methods=['GET'])
 def cooldown():
     return render_template('cooldown.html', version=version_number)
+    
+@app.route('/hour_report')
+def hourReportRedirect():
+    return redirect(url_for('hour_report'))
+
+@app.route('/hour_report' + r_string, methods=['GET', 'POST'])
+def hour_report():
+    if request.method == 'POST':
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+        hour_total = int(request.form.get('hour_total'))
+        student_ids = request.form.get('student_ids').split(',')
+
+        # Initialize a dictionary to store the total hours for each student
+        student_totals = {student_id: 0 for student_id in student_ids}
+
+        # Read the archive file
+        with open('archive.txt', 'r') as f:
+            lines = f.readlines()
+
+        for line in lines:
+            match = re.match(r'(\d+)\sChecked In at (.+?) and Checked Out at (.+?), Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
+            if match:
+                student_id, check_in_str, check_out_str, hours_str, minutes_str = match.groups()
+                check_in = datetime.datetime.strptime(check_in_str, "%Y-%m-%d %H:%M:%S.%f")
+                check_out = datetime.datetime.strptime(check_out_str, "%Y-%m-%d %H:%M:%S.%f")
+                hours = int(hours_str)
+                minutes = int(minutes_str)
+
+                # Check if the student_id is in the list and the date is within the range
+                if student_id in student_ids and start_date <= check_in.date() <= end_date:
+                    student_totals[student_id] += hours * 60 + minutes
+
+        # Convert minutes to hours and check if they meet the hour_total
+        for student_id in student_totals:
+            total_hours = student_totals[student_id] // 60
+            student_totals[student_id] = {'hours': total_hours, 'met_reqs': total_hours >= hour_total}
+
+        # Generate the CSV file
+        csv_filename = 'hour_report.csv'
+        with open(csv_filename, 'w', newline='') as csvfile:
+            fieldnames = ['Student ID', 'Total Hours', 'Met Requirements']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for student_id, totals in student_totals.items():
+                writer.writerow({'Student ID': student_id, 'Total Hours': totals['hours'], 'Met Requirements': totals['met_reqs']})
+
+        return send_file(csv_filename, as_attachment=True)
+    else:
+        return render_template('hour_report.html', version=version_number, r_string = r_string)
 
 def main():
     app.run(debug=True)
