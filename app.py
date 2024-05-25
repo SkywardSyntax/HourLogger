@@ -286,24 +286,36 @@ def admin():
         return render_template('admin.html', version=version_number)
     else:
         session['next_url'] = url_for('admin')
-        return redirect(url_for('loginz'))
+        return redirect(url_for('admin_login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def loginz():
+    error = None
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        if username == 'admin' and password == 'secret':  # change 'password' to 'secret'
+        if username == 'admin' and password == 'password':
             session['username'] = username
             next_url = session.pop('next_url', url_for('home'))
             return redirect(next_url)
         else:
-            return "Invalid username or password", 401
-    return render_template('login.html', version=version_number)
+            error = 'Invalid Credentials. Please try again.'
+    return render_template('login.html', error=error, version=version_number)
 
+@app.route('/admin_login', methods=['GET', 'POST'])
+def admin_login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == 'admin' and password == 'secret':
+            session['username'] = username
+            next_url = session.pop('next_url', url_for('admin'))
+            return redirect(next_url)
+        else:
+            error = 'Invalid Credentials. Please try again.'
+    return render_template('admin_login.html', error=error, version=version_number)
 
-
-    
 @app.route('/logout', methods=['GET'])
 def logout():
     session.pop('username', None)

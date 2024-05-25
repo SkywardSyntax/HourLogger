@@ -42,55 +42,24 @@
             font-size: 24px;
         } 
 
-        .form-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: start;
-        }
-
-        .input-section {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
-
         input[type="submit"] {
-            width: 85%; /* Make the button full width */
+            width: 85%;
             background-color: #4CAF50;
             color: black;
-            padding: 5px 5px; /* Increase padding */
+            padding: 5px 5px;
             border: none;
-            font-size: 25px; /* Increase font size */
-            border-radius: 10px; /* Make it round */
+            font-size: 25px;
+            border-radius: 10px;
             cursor: pointer;
             display: block;
             margin: 10px 0;
-            transition: all 0.3s ease; /* Add transition for smooth hover effect */
-            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* Add shadow for 3D effect */
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         }
 
         input[type="submit"]:hover {
-            background-color: #45a049; /* Change color on hover */
-            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); /* Increase shadow on hover for more depth */
-        }
-
-        /* Move the volunteer login button to the bottom right corner and change its color */
-        input[type="button"] {
-            position: fixed; /* Make the button fixed at the bottom right corner */
-            bottom: 20px;
-            right: 20px;
-            width: auto; /* Adjust width automatically */
-            background-color: #007bff; /* Change the button color to blue */
-            color: white; /* Change text color to white */
-            padding: 10px 20px; /* Adjust padding */
-            font-size: 16px; /* Adjust font size */
-            border-radius: 5px; /* Round the corners */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add a subtle shadow */
-        }
-
-        input[type="button"]:hover {
-            background-color: #0056b3; /* Darken the button color on hover */
+            background-color: #45a049;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
         }
 
         #message {
@@ -99,35 +68,22 @@
             color: rgb(53, 53, 53);
             font-weight: bold;
         }
-        
-        /* Style for version display */
-        .version-display {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            background-color: rgba(255, 255, 255, 0.5);
-            color: black;
-            padding: 5px;
-            font-size: 12px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <form method="POST" action="/login">
-            <label for="name">WESTWOOD ROBOTICS HOURS - OFFICER LOGIN</label><br>
+        <form method="POST" action="/admin_login">
+            <h2>Admin Login</h2>
             <label for="username">Username:</label><br>
             <input type="text" id="username" name="username"><br>
             <label for="password">Password:</label><br>
             <input type="password" id="password" name="password"><br>
             <input type="submit" value="Login">
-            <input type="button" value="Volunteer Login" onclick="location.href='/volunteer+HASHSTRING'">
             {% if error %}
             <p id="message">{{ error }}</p>
             {% endif %}
         </form>
     </div>
-    <div class="version-display">{{ version }}</div>
     <script>
         // Function to display incorrect password message and make it disappear after a short duration
         function displayIncorrectPasswordMessage() {

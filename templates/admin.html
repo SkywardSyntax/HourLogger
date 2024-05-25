@@ -106,12 +106,21 @@
             padding: 5px;
             font-size: 12px;
         }
+
+        /* Style for displaying error message */
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body onload ="checkPassword()">
     <div class="container">
         <form>
             <h1>Welcome, Director Of Digital Operations!</h1>
+            {% if error %}
+            <p class="error-message">{{ error }}</p>
+            {% endif %}
             <div class="input-section">
                 <input type="button" value="View Raw Hours" onclick="location.href='/raw_hours'">
                 <input type="button" value="Calculate Total Hours" onclick="calculateHours()">
@@ -148,7 +157,16 @@
             }
         }
     </script>
-
-
+    <script>
+        // Automatically hide the error message after a short delay
+        window.onload = function() {
+            setTimeout(function() {
+                var errorMessage = document.querySelector('.error-message');
+                if (errorMessage) {
+                    errorMessage.style.display = 'none';
+                }
+            }, 5000);
+        };
+    </script>
 </body>
 </html>
