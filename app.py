@@ -531,10 +531,10 @@ def hourReportRedirect():
 @app.route('/hour_report' + r_string, methods=['GET', 'POST'])
 def hour_report():
     if request.method == 'POST':
-        start_date = request.form.get('start_date')
-        end_date = request.form.get('end_date')
+        start_date = datetime.datetime.strptime(request.form.get('start_date'), "%Y-%m-%d").date()
+        end_date = datetime.datetime.strptime(request.form.get('end_date'), "%Y-%m-%d").date()
         hour_total = int(request.form.get('hour_total'))
-        student_ids = request.form.get('student_ids').split(',')
+        student_ids = [id.strip() for id in request.form.get('student_ids').split(',')]
 
         # Initialize a dictionary to store the total hours for each student
         student_totals = {student_id: 0 for student_id in student_ids}
