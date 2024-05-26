@@ -16,7 +16,6 @@
         }
 
         .container {
-
             margin: 0 auto; /* Center the container horizontally */
             padding: 20px;
             box-sizing: border-box; /* Include padding in the width calculation */
@@ -88,14 +87,6 @@
             font-weight: bold;
         }
 
-        /* Media queries for responsive layout */
-        @media (max-width: 600px) {
-            .container {
-                max-width: 100%;
-                padding: 10px;
-            }
-        }
-
         /* Style for version display */
         .version-display {
             position: fixed;
@@ -111,6 +102,39 @@
         .error-message {
             color: red;
             margin-top: 10px;
+        }
+
+        /* Popup styling */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .popup-content textarea {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .popup-content input[type="button"] {
+            width: auto;
+            margin: 0 10px;
         }
     </style>
 </head>
@@ -130,9 +154,17 @@
                 <input type="button" value="Reset File System" onclick="confirmReset()">
                 <input type="buttonRESETALL" value="Reset All" onclick="confirmReset()">
                 <input type="buttonADMIN" value="Logout" onclick="location.href='/logout'">
+                <input type="button" value="Edit Valid Students" onclick="showPopup()">
                 <!-- Add more buttons here for other features -->
             </div>
         </form>
+    </div>
+    <div class="popup-overlay" id="editPopup">
+        <div class="popup-content">
+            <textarea id="validStudentsContent"></textarea>
+            <input type="button" value="Save Changes" onclick="saveChanges()">
+            <input type="button" value="Cancel" onclick="hidePopup()">
+        </div>
     </div>
     <div class="version-display">{{ version }}</div>
     <script>
@@ -145,21 +177,49 @@
             }
         }
 
-    </script>
-    <script>
         function calculateHours() {
             location.href='/calculate_hours';
             alert('Total hours calculated successfully!');
         }
-    </script>
-    <script>
+
         function confirmReset() {
             if (confirm("Are you sure you want to reset all data? This action cannot be undone.")) {
                 location.href = '/reset_all';
             }
         }
-    </script>
-    <script>
+
+        function showPopup() {
+            document.getElementById('editPopup').style.display = 'flex';
+            // Load the content of valid_students.txt into the textarea
+            fetch('/valid_students_content')
+                .then(response => response.text())
+                .then(text => document.getElementById('validStudentsContent').value = text);
+        }
+
+        function hidePopup() {
+            document.getElementById('editPopup').style.display = 'none';
+        }
+
+        function saveChanges() {
+            const content = document.getElementById('validStudentsContent').value;
+            // Save the content back to valid_students.txt
+            fetch('/save_valid_students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: content }),
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Changes saved successfully!');
+                    hidePopup();
+                } else {
+                    alert('Failed to save changes.');
+                }
+            });
+        }
+
         // Automatically hide the error message after a short delay
         window.onload = function() {
             setTimeout(function() {

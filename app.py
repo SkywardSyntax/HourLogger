@@ -13,6 +13,7 @@ from flask import send_from_directory
 import sys
 import time
 import csv
+import json
 
 app = Flask(__name__)
 app.secret_key = 'skywardsyntazx'
@@ -173,6 +174,8 @@ class Attendance:
             return "Not Checked In!"
 
     def check_status_and_act(self, id):
+        if not validate_student_id(id):
+            return "Invalid Student ID. Please try again."
         now = datetime.datetime.now()
         print(f"check_status_and_act called with id {id}")
 
@@ -574,6 +577,25 @@ def hour_report():
         return send_file(csv_filename, as_attachment=True)
     else:
         return render_template('hour_report.html', version=version_number, r_string = r_string)
+
+def validate_student_id(student_id):
+    with open('valid_students.txt', 'r') as file:
+        valid_ids = file.readlines()
+    valid_ids = [line.strip().split(' | ')[0] for line in valid_ids]
+    return student_id in valid_ids
+
+@app.route('/valid_students_content', methods=['GET'])
+def get_valid_students_content():
+    with open('valid_students.txt', 'r') as file:
+        content = file.read()
+    return content
+
+@app.route('/save_valid_students', methods=['POST'])
+def save_valid_students():
+    content = request.json.get('content')
+    with open('valid_students.txt', 'w') as file:
+        file.write(content)
+    return {'message': 'Valid students list updated successfully.'}, 200
 
 def main():
     app.run(debug=True)
