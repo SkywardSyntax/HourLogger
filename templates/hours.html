@@ -51,6 +51,22 @@
             padding: 5px;
             font-size: 12px;
         }
+        /* Go Back to Home button */
+        .back-to-home {
+            background-color: #4CAF50; /* Volunteer login button color */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-decoration: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -60,6 +76,7 @@
         <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}">        <pre id="data">{{ data }}</pre>
     </div>
     <div class="version-display">{{ version }}</div>
+    <a href="/" class="back-to-home">Go Back to Home</a>
     <script>
         var originalData = document.getElementById('data').textContent;
         var searchInputField = document.getElementById('searchInput');

@@ -31,6 +31,22 @@
             padding: 5px;
             font-size: 12px;
         }
+        /* Go Back to Home button */
+        .back-to-home {
+            background-color: #4CAF50; /* Volunteer login button color */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-decoration: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -38,6 +54,7 @@
         <h1>You're on Cooldown!</h1>
         <p>Please wait a few seconds before making another request.</p>
     </div>
+    <a href="/" class="back-to-home">Go Back to Home</a>
     <div class="version-display">{{ version }}</div>
 </body>
 </html>

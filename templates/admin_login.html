@@ -68,6 +68,23 @@
             color: rgb(53, 53, 53);
             font-weight: bold;
         }
+
+        /* Go Back to Home button */
+        .back-to-home {
+            background-color: #4CAF50; /* Volunteer login button color */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-decoration: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -84,6 +101,7 @@
             {% endif %}
         </form>
     </div>
+    <a href="/" class="back-to-home">Go Back to Home</a>
     <script>
         // Function to display incorrect password message and make it disappear after a short duration
         function displayIncorrectPasswordMessage() {
