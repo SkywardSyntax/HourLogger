@@ -118,6 +118,22 @@
             box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
             width: 200px;
         }
+        /* Go Back to Home button */
+        .back-to-home {
+            background-color: #4CAF50; /* Volunteer login button color */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-decoration: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -141,6 +157,7 @@
         {% endfor %}
     </div>
     <div class="version-display">{{ version }}</div>
+    <a href="/" class="back-to-home">Go Back to Home</a>
     <script>
         window.onload = function() {
             var messageElement = document.getElementById('message');

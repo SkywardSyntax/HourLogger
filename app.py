@@ -65,6 +65,7 @@ class Attendance:
             return "Already Checked In!"
 
     def check_in_event(self, id, event):
+        global recent_events 
         print(f"check_in-event called with id {id} and event {event}")
 
         now = datetime.datetime.now()
@@ -73,7 +74,9 @@ class Attendance:
         with open(attendance_file, 'a') as f:
             print("attendance_file: " + attendance_file + " opened")
             f.write(f"{id} Checked In at {now}\n")  # Use f-string for string formatting
-
+            recent_events.append(f"{id} - Checked In")
+        # Keep only the last 3 events
+        recent_events = recent_events[-3:]
         # Read the file's contents
         with open(attendance_file, 'r') as f:
             contents = f.read()
@@ -133,6 +136,8 @@ class Attendance:
             return "Not Checked In!"
 
     def check_out_event(self, id, event):
+        global recent_events
+
         print(f"check_out called with id {id}")
 
         now = datetime.datetime.now()
@@ -172,7 +177,10 @@ class Attendance:
             with open(attendance_file, 'w') as f:
                 print("attendance.txt exists")
                 f.writelines(lines)
-        
+
+            recent_events.append(f"{id} - Checked Out")
+            # Keep only the last 3 events
+            recent_events = recent_events[-3:]
             return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
         else:
             return "Not Checked In!"
@@ -435,7 +443,7 @@ def volunteer_login():
             # If the user doesn't have an incomplete entry, check them in
             message = attendance.check_in_event(id, event)
 
-    return render_template('volunteer_login.html', message=message, event=eventName, version=version_number)  # Modify to include event name in the template
+    return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events)  # Modify to include event name in the template
 
 @app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
