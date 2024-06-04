@@ -1,0 +1,3 @@
+123456 Checked In at 2024-06-04 21:11:22.522932 and Checked Out at 2024-06-04 21:11:25.891540, Meeting Time Recorded: 0 hours 0 minutes
+315106 Checked In at 2024-06-04 21:11:32.715801 and Checked Out at 2024-06-04 21:13:14.033650, Meeting Time Recorded: 0 hours 1 minutes
+123456 Checked In at 2024-06-04 21:11:35.904245 and Checked Out at 2024-06-04 21:13:28.466703, Meeting Time Recorded: 0 hours 1 minutes

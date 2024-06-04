@@ -44,17 +44,22 @@ class Attendance:
         
         self.records = {}
 
-    def check_in(self, id):
+    def check_in(self, id, event=None):
         global recent_events  # Declare recent_events as global
-        print(f"check_in called with id {id}")
+        print(f"check_in called with id {id} and event {event}")
 
         now = datetime.datetime.now()
+        if event:
+            attendance_file = f'attendance-{event}.txt'
+        else:
+            attendance_file = 'attendance.txt'
+
         if id not in self.records or 'check_out_time' in self.records[id]:
             self.records[id] = {'check_in_time': now}
-            if not os.path.exists('attendance.txt'):
-                print("attendance.txt does not exist")
-                open('attendance.txt', 'w').close()
-            with open('attendance.txt', 'a') as f:
+            if not os.path.exists(attendance_file):
+                print(f"{attendance_file} does not exist")
+                open(attendance_file, 'w').close()
+            with open(attendance_file, 'a') as f:
                 f.write(f"{id} Checked In at {now}\n")
                 recent_events.append(f"{id} - Checked In")
             # Keep only the last 3 events
@@ -64,88 +69,21 @@ class Attendance:
         else:
             return "Already Checked In!"
 
-    def check_in_event(self, id, event):
-        global recent_events 
-        print(f"check_in-event called with id {id} and event {event}")
-
-        now = datetime.datetime.now()
-        attendance_file = os.path.join(os.getcwd(), f'attendance-{event}.txt')
-        print(f"attendance file: {attendance_file}")
-        with open(attendance_file, 'a') as f:
-            print("attendance_file: " + attendance_file + " opened")
-            f.write(f"{id} Checked In at {now}\n")  # Use f-string for string formatting
-            recent_events.append(f"{id} - Checked In")
-        # Keep only the last 3 events
-        recent_events = recent_events[-3:]
-        # Read the file's contents
-        with open(attendance_file, 'r') as f:
-            contents = f.read()
-        print(f"Contents of {attendance_file}:\n{contents}")
-
-        return "Checked In - Event!"
-
-    def check_out(self, id):
+    def check_out(self, id, event=None):
         global recent_events  # Declare recent_events as global
-        print(f"check_out called with id {id}")
+        print(f"check_out called with id {id} and event {event}")
 
         now = datetime.datetime.now()
-        check_in_time = None
-        if not os.path.exists('attendance.txt'):
-            print("attendance.txt does not exist")
-            open('attendance.txt', 'w').close()
-        # Check if the user has an incomplete entry in the attendance.txt file
-        with open('attendance.txt', 'r') as f:
-            lines = f.readlines()
-
-        for i, line in enumerate(lines):
-            if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
-                check_in_time_str = line.split(" at ")[1].strip()
-                check_in_time = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f")
-                break
-
-        if check_in_time is not None or (id in self.records and 'check_in_time' in self.records[id]):
-            if check_in_time is None:
-                check_in_time = self.records[id]['check_in_time']
-            time_diff = now - check_in_time
-
-            # Convert time_diff from seconds to minutes and hours
-            total_seconds = time_diff.total_seconds()
-            hours, remainder = divmod(total_seconds, 3600)
-            minutes, _ = divmod(remainder, 60)
-
-            self.records[id] = {'check_out_time': now}
-
-            # Update the relevant line
-            for i, line in reversed(list(enumerate(lines))):
-                if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
-                    lines[i] = f"{id} Checked In at {check_in_time} and Checked Out at {now}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
-                    break
-
-            # Write the updated content back to the file
-            with open('attendance.txt', 'w') as f:
-                print("attendance.txt exists")
-                f.writelines(lines)
-                # Append event to recent_events list
-                recent_events.append(f"{id} - Checked Out")
-            # Keep only the last 3 events
-            recent_events = recent_events[-3:]
-
-            subprocess.run([python_executable, 'attendanceBackup.py'])            
-            return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
+        if event:
+            attendance_file = f'attendance-{event}.txt'
         else:
-            return "Not Checked In!"
+            attendance_file = 'attendance.txt'
 
-    def check_out_event(self, id, event):
-        global recent_events
-
-        print(f"check_out called with id {id}")
-
-        now = datetime.datetime.now()
         check_in_time = None
-        attendance_file = f'attendance-{event}.txt'
         if not os.path.exists(attendance_file):
             print(f"{attendance_file} does not exist")
             open(attendance_file, 'w').close()
+        # Check if the user has an incomplete entry in the attendance file
         with open(attendance_file, 'r') as f:
             lines = f.readlines()
 
@@ -175,50 +113,35 @@ class Attendance:
 
             # Write the updated content back to the file
             with open(attendance_file, 'w') as f:
-                print("attendance.txt exists")
                 f.writelines(lines)
-
-            recent_events.append(f"{id} - Checked Out")
+                # Append event to recent_events list
+                recent_events.append(f"{id} - Checked Out")
             # Keep only the last 3 events
             recent_events = recent_events[-3:]
+
+            subprocess.run([python_executable, 'attendanceBackup.py'])            
             return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
         else:
             return "Not Checked In!"
 
-    def check_status_and_act(self, id):
+    def check_status_and_act(self, id, event=None):
         if not validate_student_id(id):
             return "Invalid Student ID. Please try again."
-        now = datetime.datetime.now()
-        print(f"check_status_and_act called with id {id}")
+        print(f"check_status_and_act called with id {id} and event {event}")
 
-        # Check if the user has an incomplete entry in the attendance.txt file
-        with open('attendance.txt', 'r') as f:
+        # Check if the user has an incomplete entry in the attendance file
+        if event:
+            attendance_file = f'attendance-{event}.txt'
+        else:
+            attendance_file = 'attendance.txt'
+
+        with open(attendance_file, 'r') as f:
             lines = f.readlines()
         for i, line in enumerate(lines):
             if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
-                check_in_time_str = line.split(" at ")[1].strip()
-                check_in_time = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f")
-                time_diff = now - check_in_time
+                return self.check_out(id, event)
 
-                # Convert time_diff from seconds to minutes and hours
-                total_seconds = time_diff.total_seconds()
-                hours, remainder = divmod(total_seconds, 3600)
-                minutes, _ = divmod(remainder, 60)
-
-                if hours >= 10:
-                    # If it's been more than 10 hours, check them out and check them in again
-                    lines[i] = f"{id} Checked In at {check_in_time} and Checked Out at {now}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
-                    with open('attendance.txt', 'w') as f:
-                        f.writelines(lines)
-                    return self.check_in(id)
-                else:
-                    return self.check_out(id)
-
-        # If the user doesn't have an incomplete entry, proceed as before
-        if id in self.records and 'check_in_time' in self.records[id] and 'check_out_time' not in self.records[id]:
-            return self.check_out(id)
-        else:
-            return self.check_in(id) if re.match(r'^\d{6}$', id) else "Invalid Student Id Number. Please enter only the 6 digit number."
+        return self.check_in(id, event) if re.match(r'^\d{6}$', id) else "Invalid Student Id Number. Please enter only the 6 digit number."
 
 attendance = Attendance()  # Create an instance of Attendance
 
@@ -292,7 +215,8 @@ def home():
     message = ''
     if request.method == 'POST':
         id = request.form.get('id')
-        message = attendance.check_status_and_act(id)
+        event = request.form.get('event', None)  # Get event parameter if available
+        message = attendance.check_status_and_act(id, event)
     return render_template('home.html', message=message, version=version_number, recent_events=recent_events)
 
 
@@ -437,11 +361,11 @@ def volunteer_login():
         for i, line in enumerate(lines):
             if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
                 # If the user has an incomplete entry, check them out
-                message = attendance.check_out_event(id, event)
+                message = attendance.check_out(id, event)
                 break
         else:
             # If the user doesn't have an incomplete entry, check them in
-            message = attendance.check_in_event(id, event)
+            message = attendance.check_in(id, event)
 
     return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events)  # Modify to include event name in the template
 
