@@ -29,6 +29,9 @@ client_request_counts = {}
 with open('version.txt', 'r') as version_file:
     version_number = version_file.read().strip()
 
+# Global list to store the last 3 events
+recent_events = ["","",""]
+
 class Attendance:
     def __init__(self):
         # Read the data from attendanceBackup.txt
@@ -40,9 +43,10 @@ class Attendance:
             attendance_file.write(backup_data)
         
         self.records = {}
-    def check_in(self, id):
-        print(f"check_in called with id {id}")
 
+    def check_in(self, id):
+        global recent_events  # Declare recent_events as global
+        print(f"check_in called with id {id}")
 
         now = datetime.datetime.now()
         if id not in self.records or 'check_out_time' in self.records[id]:
@@ -52,11 +56,11 @@ class Attendance:
                 open('attendance.txt', 'w').close()
             with open('attendance.txt', 'a') as f:
                 f.write(f"{id} Checked In at {now}\n")
+                recent_events.append(f"{id} - Checked In")
+            # Keep only the last 3 events
+            recent_events = recent_events[-3:]
             subprocess.run([python_executable, 'attendanceBackup.py'])
             return "Checked In!"
-    
-        
-        
         else:
             return "Already Checked In!"
 
@@ -77,9 +81,8 @@ class Attendance:
 
         return "Checked In - Event!"
 
-
-
     def check_out(self, id):
+        global recent_events  # Declare recent_events as global
         print(f"check_out called with id {id}")
 
         now = datetime.datetime.now()
@@ -87,9 +90,6 @@ class Attendance:
         if not os.path.exists('attendance.txt'):
             print("attendance.txt does not exist")
             open('attendance.txt', 'w').close()
-        # Check if the user has an incomplete entry in the attendance.txt file
-        with open('attendance.txt', 'r') as f:
-            lines = f.readlines()
         # Check if the user has an incomplete entry in the attendance.txt file
         with open('attendance.txt', 'r') as f:
             lines = f.readlines()
@@ -122,12 +122,16 @@ class Attendance:
             with open('attendance.txt', 'w') as f:
                 print("attendance.txt exists")
                 f.writelines(lines)
+                # Append event to recent_events list
+                recent_events.append(f"{id} - Checked Out")
+            # Keep only the last 3 events
+            recent_events = recent_events[-3:]
 
             subprocess.run([python_executable, 'attendanceBackup.py'])            
             return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
         else:
             return "Not Checked In!"
-        
+
     def check_out_event(self, id, event):
         print(f"check_out called with id {id}")
 
@@ -281,13 +285,13 @@ def home():
     if request.method == 'POST':
         id = request.form.get('id')
         message = attendance.check_status_and_act(id)
-    return render_template('home.html', message=message, version=version_number)
+    return render_template('home.html', message=message, version=version_number, recent_events=recent_events)
 
 
 @app.route('/WestwoodRoboticsAdmin', methods=['GET'])
 def admin():
     if 'username' in session and session['username'] == 'admin':
-        return render_template('admin.html', version=version_number)
+        return render_template('admin.html', version=version_number, recent_events=recent_events)
     else:
         session['next_url'] = url_for('admin')
         return redirect(url_for('admin_login'))
