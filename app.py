@@ -2,7 +2,7 @@ import subprocess
 from flask import Flask, request, redirect, session, url_for, render_template
 from flask import Flask, request, redirect, url_for, render_template, Response
 from flask import send_file
-from HoursAdder import calculate_total_time  
+from scripts.HoursAdder import calculate_total_time  
 import datetime
 import re
 import random
@@ -26,7 +26,7 @@ client_cooldowns = {}
 client_request_counts = {}
 
 # Read version number from version.txt
-with open('version.txt', 'r') as version_file:
+with open('data/version.txt', 'r') as version_file:
     version_number = version_file.read().strip()
 
 # Global list to store the last 3 events
@@ -35,11 +35,11 @@ recent_events = ["","",""]
 class Attendance:
     def __init__(self):
         # Read the data from attendanceBackup.txt
-        with open('attendanceBackup.txt', 'r') as backup_file:
+        with open('data/attendanceBackup.txt', 'r') as backup_file:
             backup_data = backup_file.read()
 
         # Write the backup data to attendance.txt
-        with open('attendance.txt', 'w') as attendance_file:
+        with open('data/attendance.txt', 'w') as attendance_file:
             attendance_file.write(backup_data)
         
         self.records = {}
@@ -51,15 +51,15 @@ class Attendance:
         now = datetime.datetime.now()
         if id not in self.records or 'check_out_time' in self.records[id]:
             self.records[id] = {'check_in_time': now}
-            if not os.path.exists('attendance.txt'):
+            if not os.path.exists('data/attendance.txt'):
                 print("attendance.txt does not exist")
-                open('attendance.txt', 'w').close()
-            with open('attendance.txt', 'a') as f:
+                open('data/attendance.txt', 'w').close()
+            with open('data/attendance.txt', 'a') as f:
                 f.write(f"{id} Checked In at {now}\n")
                 recent_events.append(f"{id} - Checked In")
             # Keep only the last 3 events
             recent_events = recent_events[-3:]
-            subprocess.run([python_executable, 'attendanceBackup.py'])
+            subprocess.run([python_executable, 'scripts/attendanceBackup.py'])
             return "Checked In!"
         else:
             return "Already Checked In!"
@@ -69,7 +69,7 @@ class Attendance:
         print(f"check_in-event called with id {id} and event {event}")
 
         now = datetime.datetime.now()
-        attendance_file = os.path.join(os.getcwd(), f'attendance-{event}.txt')
+        attendance_file = os.path.join(os.getcwd(), f'data/attendance-{event}.txt')
         print(f"attendance file: {attendance_file}")
         with open(attendance_file, 'a') as f:
             print("attendance_file: " + attendance_file + " opened")
@@ -90,11 +90,11 @@ class Attendance:
 
         now = datetime.datetime.now()
         check_in_time = None
-        if not os.path.exists('attendance.txt'):
+        if not os.path.exists('data/attendance.txt'):
             print("attendance.txt does not exist")
-            open('attendance.txt', 'w').close()
+            open('data/attendance.txt', 'w').close()
         # Check if the user has an incomplete entry in the attendance.txt file
-        with open('attendance.txt', 'r') as f:
+        with open('data/attendance.txt', 'r') as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines):
@@ -122,7 +122,7 @@ class Attendance:
                     break
 
             # Write the updated content back to the file
-            with open('attendance.txt', 'w') as f:
+            with open('data/attendance.txt', 'w') as f:
                 print("attendance.txt exists")
                 f.writelines(lines)
                 # Append event to recent_events list
@@ -130,7 +130,7 @@ class Attendance:
             # Keep only the last 3 events
             recent_events = recent_events[-3:]
 
-            subprocess.run([python_executable, 'attendanceBackup.py'])            
+            subprocess.run([python_executable, 'scripts/attendanceBackup.py'])            
             return f"Checked Out! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes"
         else:
             return "Not Checked In!"
@@ -142,7 +142,7 @@ class Attendance:
 
         now = datetime.datetime.now()
         check_in_time = None
-        attendance_file = f'attendance-{event}.txt'
+        attendance_file = f'data/attendance-{event}.txt'
         if not os.path.exists(attendance_file):
             print(f"{attendance_file} does not exist")
             open(attendance_file, 'w').close()
@@ -192,7 +192,7 @@ class Attendance:
         print(f"check_status_and_act called with id {id}")
 
         # Check if the user has an incomplete entry in the attendance.txt file
-        with open('attendance.txt', 'r') as f:
+        with open('data/attendance.txt', 'r') as f:
             lines = f.readlines()
         for i, line in enumerate(lines):
             if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
@@ -208,7 +208,7 @@ class Attendance:
                 if hours >= 10:
                     # If it's been more than 10 hours, check them out and check them in again
                     lines[i] = f"{id} Checked In at {check_in_time} and Checked Out at {now}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
-                    with open('attendance.txt', 'w') as f:
+                    with open('data/attendance.txt', 'w') as f:
                         f.writelines(lines)
                     return self.check_in(id)
                 else:
@@ -240,7 +240,7 @@ def attendance_data():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
-    with open('attendance.txt', 'r') as f:
+    with open('data/attendance.txt', 'r') as f:
         data = f.read()
     return Response(data, mimetype='text/plain')
 
@@ -250,7 +250,7 @@ def total_data():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
-    with open('hourTotals.txt', 'r') as f:
+    with open('data/hourTotals.txt', 'r') as f:
         data = f.read()
     return Response(data, mimetype='text/plain')
 
@@ -259,11 +259,11 @@ def download_file():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
-    subprocess.run([python_executable, 'sheetExporter.py'])
-    return send_file('hourTotals.csv', as_attachment=True)
+    subprocess.run([python_executable, 'scripts/sheetExporter.py'])
+    return send_file('data/hourTotals.csv', as_attachment=True)
 
 def read_login_credentials():
-    with open('login.txt', 'r') as file:
+    with open('data/login.txt', 'r') as file:
         username = file.readline().strip()
         password = file.readline().strip()
     return username, password
@@ -343,7 +343,7 @@ def calculate_hours():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
-    subprocess.run([python_executable, 'HoursAdder.py'])
+    subprocess.run([python_executable, 'scripts/HoursAdder.py'])
     return redirect(url_for('admin'))
 
 @app.route('/archive', methods=['GET'])
@@ -384,8 +384,8 @@ def hours():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
-    subprocess.run([python_executable, 'HoursAdder.py'])
-    with open('hourTotals.txt', 'r') as f:
+    subprocess.run([python_executable, 'scripts/HoursAdder.py'])
+    with open('data/hourTotals.txt', 'r') as f:
         data = f.read()
     return render_template('hours.html', data=data, version=version_number)
 
@@ -408,12 +408,12 @@ def volunteer_select():
         event = request.form.get('event')
         eventName = request.form.get('eventName')
         # Create a new file for each event
-        with open(f'attendance-{event}.txt', 'w') as f:
+        with open(f'data/attendance-{event}.txt', 'w') as f:
             pass
         return redirect(url_for('volunteer_login', event=event, eventName=eventName))
     
     # Read events from event_list.txt
-    with open('event_list.txt', 'r') as file:
+    with open('data/event_list.txt', 'r') as file:
         events = file.readlines()
     
     return render_template('volunteer_select.html', events=events, version=version_number)
@@ -429,7 +429,7 @@ def volunteer_login():
 
         print("volunteer login" + eventName + " id:" + id)
         # Use the event-specific attendance file
-        attendance_file = f'attendance-{event}.txt'
+        attendance_file = f'data/attendance-{event}.txt'
 
         # Check if the user has an incomplete entry in the attendance file
         with open(attendance_file, 'r') as f:
@@ -447,9 +447,9 @@ def volunteer_login():
 
 @app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
-    event_file = f'attendance-{eventname}.txt'
-    event_totals_file = f'{eventname}-HourTotals.txt'
-    volunteer_totals_file = 'VolunteerHourTotals.txt'
+    event_file = f'data/attendance-{eventname}.txt'
+    event_totals_file = f'data/{eventname}-HourTotals.txt'
+    volunteer_totals_file = 'data/VolunteerHourTotals.txt'
 
     # Initialize a dictionary to store the total hours for each volunteer
     event_totals = {}
@@ -522,18 +522,18 @@ def confirm_reset():
 
 def clear_files():
     # Clear the contents of attendance.txt
-    with open('attendance.txt', 'w') as f:
+    with open('data/attendance.txt', 'w') as f:
         f.truncate(0)
 
     # Clear the contents of hourTotals.txt
-    with open('hourTotals.txt', 'w') as f:
+    with open('data/hourTotals.txt', 'w') as f:
         f.truncate(0)
 
-    with open ('attendanceBackup.txt', 'w') as f:
+    with open ('data/attendanceBackup.txt', 'w') as f:
         f.truncate(0)
     # Delete the hourTotals.csv file
-    if os.path.exists('hourTotals.csv'):
-        os.remove('hourTotals.csv')
+    if os.path.exists('data/hourTotals.csv'):
+        os.remove('data/hourTotals.csv')
 
 @app.route('/cooldown', methods=['GET'])
 def cooldown():
@@ -555,7 +555,7 @@ def hour_report():
         student_totals = {student_id: 0 for student_id in student_ids}
 
         # Read the archive file
-        with open('archive.txt', 'r') as f:
+        with open('data/archive.txt', 'r') as f:
             lines = f.readlines()
 
         for line in lines:
@@ -577,7 +577,7 @@ def hour_report():
             student_totals[student_id] = {'hours': total_hours, 'met_reqs': total_hours >= hour_total}
 
         # Generate the CSV file
-        csv_filename = 'hour_report.csv'
+        csv_filename = 'data/hour_report.csv'
         with open(csv_filename, 'w', newline='') as csvfile:
             fieldnames = ['Student ID', 'Total Hours', 'Met Requirements']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -591,21 +591,21 @@ def hour_report():
         return render_template('hour_report.html', version=version_number, r_string = r_string)
 
 def validate_student_id(student_id):
-    with open('valid_students.txt', 'r') as file:
+    with open('data/valid_students.txt', 'r') as file:
         valid_ids = file.readlines()
     valid_ids = [line.strip().split(' | ')[0] for line in valid_ids]
     return student_id in valid_ids
 
 @app.route('/valid_students_content', methods=['GET'])
 def get_valid_students_content():
-    with open('valid_students.txt', 'r') as file:
+    with open('data/valid_students.txt', 'r') as file:
         content = file.read()
     return content
 
 @app.route('/save_valid_students', methods=['POST'])
 def save_valid_students():
     content = request.json.get('content')
-    with open('valid_students.txt', 'w') as file:
+    with open('data/valid_students.txt', 'w') as file:
         file.write(content)
     return {'message': 'Valid students list updated successfully.'}, 200
 
