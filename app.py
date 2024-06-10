@@ -291,9 +291,11 @@ def volunteer_select():
     if request.method == 'POST':
         event = request.form.get('event')
         eventName = request.form.get('eventName')
-        # Create a new file for each event
-        with open(f'data/attendance-{event}.txt', 'w') as f:
-            pass
+        # Check if the event-specific txt file already exists before creating it
+        event_file_path = f'data/attendance-{event}.txt'
+        if not os.path.exists(event_file_path):
+            with open(event_file_path, 'w') as f:
+                pass
         return redirect(url_for('volunteer_login', event=event, eventName=eventName))
     
     # Read events from event_list.txt
@@ -319,23 +321,8 @@ def volunteer_login():
     event = request.args.get('event')  # Get the event value from the query string parameter
     if request.method == 'POST':
         id = request.form.get('id')
-
-
-        print("volunteer login" + eventName + " id:" + id)
-        # Use the event-specific attendance file
-        attendance_file = f'data/attendance-{event}.txt'
-
-        # Check if the user has an incomplete entry in the attendance file
-        with open(attendance_file, 'r') as f:
-            lines = f.readlines()
-        for i, line in enumerate(lines):
-            if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
-                # If the user has an incomplete entry, check them out
-                message = attendance.check_out(id, event)
-                break
-        else:
-            # If the user doesn't have an incomplete entry, check them in
-            message = attendance.check_in(id, event)
+        # Use the check_status_and_act method from the Attendance class for check in/out actions
+        message = attendance.check_status_and_act(id, event)
 
     return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events)  # Modify to include event name in the template
 
