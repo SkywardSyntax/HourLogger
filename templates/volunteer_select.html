@@ -33,8 +33,6 @@
 
         input[type="submit"] {
             width: 50%;
-            background-color: #4CAF50;
-            color: black;
             padding: 5px 5px;
             border: none;
             font-size: 25px;
@@ -46,10 +44,25 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         }
 
-        input[type="submit"]:hover {
+        .active-event {
+            background-color: #4CAF50;
+            color: black;
+        }
+
+        .inactive-event {
+            background-color: #808080;
+            color: white;
+        }
+
+        .active-event:hover {
             background-color: #45a049;
             box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
         }
+
+        .inactive-event:hover {
+            background-color: #808080; /* Ensure inactive events stay gray on hover */
+        }
+
         /* Style for version display */
         .version-display {
             position: fixed;
@@ -80,12 +93,10 @@
 </head>
 <body>
     <div class="form-container">
-        <!-- Use the events variable directly -->
-        {% for event in events %}
-            {% set event_details = event.strip().split(' | ') %}
-            <form method="POST">
-                <input type="hidden" name="event" value="{{ event_details[0] }}">
-                <input type="submit" name="eventName" value="{{ event_details[1] }}">
+        {% for event_id, event_name, event_status in events %}
+            <form method="POST" action="{{ 'javascript:void(0)' if event_status == 'INACTIVE' else url_for('volunteer_login', event=event_id, eventName=event_name) }}">
+                <input type="hidden" name="event" value="{{ event_id }}">
+                <input type="submit" name="eventName" value="{{ event_name }}" class="{{ 'inactive-event' if event_status == 'INACTIVE' else 'active-event' }}">
             </form>
         {% endfor %}
     </div>

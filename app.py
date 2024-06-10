@@ -300,7 +300,17 @@ def volunteer_select():
     with open('data/event_list.txt', 'r') as file:
         events = file.readlines()
     
-    return render_template('volunteer_select.html', events=events, version=version_number)
+    # Extract event details and status
+    events_with_status = []
+    for event in events:
+        event_details = event.strip().split(' | ')
+        if len(event_details) == 3:
+            event_id, event_name, event_status = event_details
+            events_with_status.append((event_id, event_name, event_status))
+        else:
+            events_with_status.append((event_details[0], event_details[1], 'ACTIVE'))  # Default to ACTIVE if status is missing
+    
+    return render_template('volunteer_select.html', events=events_with_status, version=version_number)
 
 @app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
 def volunteer_login():
@@ -321,11 +331,11 @@ def volunteer_login():
         for i, line in enumerate(lines):
             if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
                 # If the user has an incomplete entry, check them out
-                message = attendance.check_out_event(id, event)
+                message = attendance.check_out(id, event)
                 break
         else:
             # If the user doesn't have an incomplete entry, check them in
-            message = attendance.check_in_event(id, event)
+            message = attendance.check_in(id, event)
 
     return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events)  # Modify to include event name in the template
 
