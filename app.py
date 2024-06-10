@@ -32,6 +32,15 @@ with open('data/version.txt', 'r') as version_file:
 # Global list to store the last 3 events
 recent_events = ["","",""]
 
+def validate_event_url(event, eventName):
+    with open('data/event_list.txt', 'r') as file:
+        events = file.readlines()
+    for event_record in events:
+        event_id, event_name, _ = event_record.strip().split(' | ')
+        if event_id == event and event_name == eventName:
+            return True
+    return False
+
 class Attendance:
     def __init__(self):
         # Read the data from attendanceBackup.txt
@@ -319,12 +328,18 @@ def volunteer_login():
     message = ''
     eventName = request.args.get('eventName')
     event = request.args.get('event')  # Get the event value from the query string parameter
+    if not validate_event_url(event, eventName):
+        return redirect(url_for('invalid_event'))
     if request.method == 'POST':
         id = request.form.get('id')
         # Use the check_status_and_act method from the Attendance class for check in/out actions
         message = attendance.check_status_and_act(id, event)
 
     return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events)  # Modify to include event name in the template
+
+@app.route('/invalid_event', methods=['GET'])
+def invalid_event():
+    return render_template('invalid_event.html', version=version_number)
 
 @app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
