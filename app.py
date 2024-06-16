@@ -33,6 +33,9 @@ with open('data/version.txt', 'r') as version_file:
 # Global list to store the last 3 events
 recent_events = ["","",""]
 
+# Global variable to track the state of ID validation
+id_validation_enabled = True
+
 class Attendance:
     def __init__(self):
         # Read the data from attendanceBackup.txt
@@ -183,8 +186,9 @@ def home():
 
 @app.route('/WestwoodRoboticsAdmin', methods=['GET'])
 def admin():
+    global id_validation_enabled
     if 'username' in session and session['username'] == 'admin':
-        return render_template('admin.html', version=version_number, recent_events=recent_events)
+        return render_template('admin.html', version=version_number, recent_events=recent_events, id_validation_enabled=id_validation_enabled)
     else:
         session['next_url'] = url_for('admin')
         return redirect(url_for('admin_login'))
@@ -500,6 +504,9 @@ def hour_report():
         return render_template('hour_report.html', version=version_number, r_string = r_string)
 
 def validate_student_id(student_id):
+    global id_validation_enabled
+    if not id_validation_enabled:
+        return True
     with open('data/valid_students.txt', 'r') as file:
         valid_ids = file.readlines()
     valid_ids = [line.strip().split(' | ')[0] for line in valid_ids]
@@ -517,6 +524,12 @@ def save_valid_students():
     with open('data/valid_students.txt', 'w') as file:
         file.write(content)
     return {'message': 'Valid students list updated successfully.'}, 200
+
+@app.route('/toggle_id_validation', methods=['POST'])
+def toggle_id_validation():
+    global id_validation_enabled
+    id_validation_enabled = not id_validation_enabled
+    return json.dumps({'id_validation_enabled': id_validation_enabled})
 
 def main():
     app.run(debug=True)

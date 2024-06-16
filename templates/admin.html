@@ -152,15 +152,79 @@
             border-radius: 12px;
             text-decoration: none;
         }
+        /* Toggle switch container */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
     </style>
 </head>
-<body onload ="checkPassword()">
+<body>
     <div class="container">
         <form>
             <h1>Welcome, Director Of Digital Operations!</h1>
-            {% if error %}
-            <p class="error-message">{{ error }}</p>
-            {% endif %}
+            <label class="switch">
+                <input type="checkbox" id="toggleValidation" {{ 'checked' if id_validation_enabled else '' }}>
+                <span class="slider round"></span>
+            </label>
+            <span>ID Validation: <span id="validationStatus">{{ 'ON' if id_validation_enabled else 'OFF' }}</span></span>
             <div class="input-section">
                 <input type="button" value="View Raw Hours" onclick="location.href='/raw_hours'">
                 <input type="button" value="Calculate Total Hours" onclick="calculateHours()">
@@ -169,7 +233,6 @@
                 <input type="button" value="Run a Report" onclick="location.href='/hour_report{{ r_string }}'">
                 <input type="button" value="Reset File System" onclick="confirmArchive()">
                 <input type="button" value="Edit Valid Students" onclick="showPopup()">
-                <!-- Add more buttons here for other features -->
                 <input type="buttonADMIN" value="Logout" onclick="location.href='/logout'">
             </div>
         </form>
@@ -184,14 +247,22 @@
     <div class="version-display">{{ version }}</div>
     <a href="/" class="back-to-home">Go Back to Home</a>
     <script>
-        function checkPassword() {
-            var password = prompt("Please enter the admin password:");
-            if (password === "secret") {
-                document.getElementById("adminForm").style.display = "flex";
-            } else {
-                checkPassword();
-            }
-        }
+        document.getElementById('toggleValidation').addEventListener('change', function() {
+            var validationStatus = document.getElementById('validationStatus');
+            var isChecked = this.checked;
+            fetch('/toggle_id_validation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id_validation_enabled: isChecked }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                validationStatus.textContent = data.id_validation_enabled ? 'ON' : 'OFF';
+                alert('ID Validation is now ' + (data.id_validation_enabled ? 'ON' : 'OFF'));
+            });
+        });
 
         function calculateHours() {
             location.href='/calculate_hours';
@@ -206,7 +277,6 @@
 
         function showPopup() {
             document.getElementById('editPopup').style.display = 'flex';
-            // Load the content of valid_students.txt into the textarea
             fetch('/valid_students_content')
                 .then(response => response.text())
                 .then(text => document.getElementById('validStudentsContent').value = text);
@@ -218,7 +288,6 @@
 
         function saveChanges() {
             const content = document.getElementById('validStudentsContent').value;
-            // Save the content back to valid_students.txt
             fetch('/save_valid_students', {
                 method: 'POST',
                 headers: {
@@ -235,16 +304,6 @@
                 }
             });
         }
-
-        // Automatically hide the error message after a short delay
-        window.onload = function() {
-            setTimeout(function() {
-                var errorMessage = document.querySelector('.error-message');
-                if (errorMessage) {
-                    errorMessage.style.display = 'none';
-                }
-            }, 5000);
-        };
     </script>
 </body>
 </html>
