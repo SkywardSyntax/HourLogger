@@ -136,23 +136,11 @@
             width: auto;
             margin: 0 10px;
         }
-        /* New section to display recent events */
-        .recent-events {
-            position: fixed;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
-            width: 200px;
-        }
         /* Add a 'Go Back to Home' button at the bottom of the page */
         .back-to-home {
             position: fixed;
             bottom: 20px;
-            left: 20px;
+            right: 20px;
             background-color: #4CAF50; /* Volunteer login button color */
             color: white;
             padding: 10px 20px;
@@ -180,18 +168,11 @@
                 <input type="button" value="Download CSV" onclick="location.href='/download_csv'">
                 <input type="button" value="Run a Report" onclick="location.href='/hour_report{{ r_string }}'">
                 <input type="button" value="Reset File System" onclick="confirmReset()">
-                <input type="buttonRESETALL" value="Reset All" onclick="confirmReset()">
-                <input type="buttonADMIN" value="Logout" onclick="location.href='/logout'">
                 <input type="button" value="Edit Valid Students" onclick="showPopup()">
                 <!-- Add more buttons here for other features -->
+                <input type="buttonADMIN" value="Logout" onclick="location.href='/logout'">
             </div>
         </form>
-    </div>
-    <div class="recent-events">
-        <h4>Recent Events</h4>
-        {% for event in recent_events %}
-        <p>{{ event }}</p>
-        {% endfor %}
     </div>
     <div class="popup-overlay" id="editPopup">
         <div class="popup-content">
