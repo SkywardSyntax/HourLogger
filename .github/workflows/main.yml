@@ -1,6 +1,5 @@
 name: CI
 
-
 on:
   push:
     branches: [ main ]
@@ -12,22 +11,29 @@ jobs:
     - name: Remove __pycache__ directory
       run: sudo rm -rf __pycache__
 
+    # Move attendance and archive data files out of repository to preserve them across deployments
     - name: Move data files out of repository
       run: |
         sudo mkdir -p /tmp/data
-        sudo mv attendance.txt attendanceBackup.txt hourTotals.txt hourTotals.csv /tmp/data/ || true
+        sudo mv data/attendance.txt data/attendanceBackup.txt data/hourTotals.txt data/hourTotals.csv /tmp/data/ || true
+        sudo mv data/archive.txt /tmp/data/ || true
         sudo mv Archives/* /tmp/data/ || true
 
     - uses: actions/checkout@v2
 
+    # Move attendance and archive data files back into repository after pulling new code
     - name: Move data files back into repository
       run: |
-        sudo mv /tmp/data/* . || true
+        sudo mv /tmp/data/attendance.txt data/ || true
+        sudo mv /tmp/data/attendanceBackup.txt data/ || true
+        sudo mv /tmp/data/hourTotals.txt data/ || true
+        sudo mv /tmp/data/hourTotals.csv data/ || true
+        sudo mv /tmp/data/archive.txt data/ || true
+        sudo mv /tmp/data/* Archives/ || true
 
     - name: Stop Gunicorn server and remove screen
       run: |
         sudo screen -X -S gunicorn quit || true
-
 
     - name: Start Gunicorn server in a new screen
       run: |
