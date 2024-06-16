@@ -1,4 +1,1 @@
-EVENT1 | First Event
-EVENT2 | Second Event
-EVENT3 | Third Event
-EVENT4 | Fourth Event
+EVENT1 | Robocamp
