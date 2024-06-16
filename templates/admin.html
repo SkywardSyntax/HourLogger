@@ -167,7 +167,7 @@
                 <input type="button" value="Show Total Hours" onclick="location.href='/hours'">
                 <input type="button" value="Download CSV" onclick="location.href='/download_csv'">
                 <input type="button" value="Run a Report" onclick="location.href='/hour_report{{ r_string }}'">
-                <input type="button" value="Reset File System" onclick="confirmReset()">
+                <input type="button" value="Reset File System" onclick="confirmArchive()">
                 <input type="button" value="Edit Valid Students" onclick="showPopup()">
                 <!-- Add more buttons here for other features -->
                 <input type="buttonADMIN" value="Logout" onclick="location.href='/logout'">
@@ -198,9 +198,9 @@
             alert('Total hours calculated successfully!');
         }
 
-        function confirmReset() {
+        function confirmArchive() {
             if (confirm("Are you sure you want to reset all data? This action cannot be undone.")) {
-                location.href = '/reset_all';
+                location.href = '/archive_all';
             }
         }
 

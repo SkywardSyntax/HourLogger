@@ -14,6 +14,7 @@ import sys
 import time
 import csv
 import json
+import shutil
 
 app = Flask(__name__)
 app.secret_key = 'skywardsyntazx'
@@ -255,13 +256,37 @@ def download_archive(filename):
     return send_from_directory('Archives', filename, as_attachment=True)
 
 
-@app.route('/reset_all', methods=['GET'])
-def reset_all():
-    if confirm_reset():
-        clear_files()
-        return redirect(url_for('admin'))
-    else:
-        return "Reset action canceled."
+def archive_attendance_files():
+    # Define the root directory for archives
+    archive_root_dir = 'Archives'
+    # Ensure the root directory exists
+    if not os.path.exists(archive_root_dir):
+        os.makedirs(archive_root_dir)
+
+    # Get the current date and time
+    current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+    current_time = datetime.datetime.now().strftime('%H-%M-%S')
+    # Define the directory structure
+    date_dir = os.path.join(archive_root_dir, f'Archive-{current_date}')
+    datetime_dir = os.path.join(date_dir, f'Archive-{current_date}-{current_time}')
+
+    # Ensure the directories exist
+    if not os.path.exists(date_dir):
+        os.makedirs(date_dir)
+    if not os.path.exists(datetime_dir):
+        os.makedirs(datetime_dir)
+
+    # Copy attendance files and event_list.txt to the datetime directory
+    data_dir = 'data'
+    for file in os.listdir(data_dir):
+        if file.startswith('attendance') or file == 'event_list.txt':
+            shutil.copy(os.path.join(data_dir, file), datetime_dir)
+
+@app.route('/archive_all', methods=['GET'])
+def archive_all():
+    calculate_hours()
+    archive_attendance_files()
+    return redirect(url_for('admin'))
 
 @app.route('/hours', methods=['GET'])
 def hours():
