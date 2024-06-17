@@ -34,7 +34,7 @@ with open('data/version.txt', 'r') as version_file:
 recent_events = ["","",""]
 
 # Global variable to track the state of ID validation
-id_validation_enabled = True
+id_validation_enabled = False
 
 class Attendance:
     def __init__(self):
