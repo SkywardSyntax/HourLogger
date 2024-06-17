@@ -154,18 +154,23 @@ def read_login_credentials():
     with open('data/login.txt', 'r') as file:
         username = file.readline().strip()
         password = file.readline().strip()
+        print (username + " " + password)
     return username, password
 
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    error = None
-    if request.method == 'POST':
-        username, password = read_login_credentials()
-        if request.form['username'] != username or request.form['password'] != password:
-            error = 'Invalid Credentials. Please try again.'
-        else:
-            session['username'] = request.form['username']
-            return redirect('/' + random_string)
+# @app.route('/', methods=['GET', 'POST'])
+# def login():
+#     error = None
+#     if request.method == 'POST':
+#         username, password = read_login_credentials()
+#         if request.form['username'] != username or request.form['password'] != password:
+#             error = 'Invalid Credentials. Please try again.'
+#             print ("Correct Username is : " + username + " and Correct Password is : " + password)
+            
+#         else:
+#             session['username'] = request.form['username']
+#             return redirect('/' + random_string)
+#             print ("Correct Username is : " + username + " and Correct Password is : " + password)
+    
     return render_template('login.html', error=error, version=version_number)
 
 @app.route('/volunteer+HASHSTRING', methods=['GET'])
@@ -193,13 +198,15 @@ def admin():
         session['next_url'] = url_for('admin')
         return redirect(url_for('admin_login'))
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def loginz():
     error = None
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username == 'admin' and password == 'password':
+        username, password = read_login_credentials()
+        input_username = request.form.get('username')
+        input_password = request.form.get('password')
+        print ("Correct Username is : " + username + " and Correct Password is : " + password)
+        if input_username == username and input_password == password:
             session['username'] = username
             next_url = session.pop('next_url', url_for('home'))
             return redirect(next_url)
@@ -343,18 +350,7 @@ def volunteer_login():
         print("volunteer login" + eventName + " id:" + id)
         # Use the event-specific attendance file
         attendance_file = f'data/attendance-{event}.txt'
-
-        # Check if the user has an incomplete entry in the attendance file
-        with open(attendance_file, 'r') as f:
-            lines = f.readlines()
-        for i, line in enumerate(lines):
-            if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
-                # If the user has an incomplete entry, check them out
-                message = attendance.check_out_event(id, event)
-                break
-        else:
-            # If the user doesn't have an incomplete entry, check them in
-            message = attendance.check_in_event(id, event)
+        message = attendance.check_status_and_act(id, event)
 
     return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events)  # Modify to include event name in the template
 
