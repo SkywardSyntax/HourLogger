@@ -2,7 +2,7 @@ import subprocess
 from flask import Flask, request, redirect, session, url_for, render_template
 from flask import Flask, request, redirect, url_for, render_template, Response
 from flask import send_file
-from scripts.HoursAdder import calculate_total_time  
+from scripts.HoursAdder import calculate_total_time
 import datetime
 import re
 import random
@@ -31,7 +31,7 @@ with open('data/version.txt', 'r') as version_file:
     version_number = version_file.read().strip()
 
 # Global list to store the last 3 events
-recent_events = ["","",""]
+recent_events = ["", "", ""]
 
 # Global variable to track the state of ID validation
 id_validation_enabled = False
@@ -45,7 +45,7 @@ class Attendance:
         # Write the backup data to attendance.txt
         with open('data/attendance.txt', 'w') as attendance_file:
             attendance_file.write(backup_data)
-        
+
         self.records = {}
 
     def check_in_out(self, id, event=None, action=None):
@@ -107,6 +107,72 @@ class Attendance:
                 return self.check_in_out(id, event, "check_out")
 
         return self.check_in_out(id, event, "check_in")
+    
+    def correct_hours(self, student_id, date_of_correction, hours_option, file_selection):
+        if hours_option == "add_hours":
+            hours_to_add = int(request.form.get('hours_to_add'))
+            minutes_to_add = int(request.form.get('minutes_to_add'))
+
+            self.add_hours(student_id, date_of_correction, hours_to_add, minutes_to_add, file_selection)
+        elif hours_option == "check_in_out":
+            check_in_time = request.form.get('check_in_time')
+            check_out_time = request.form.get('check_out_time')
+
+            self.add_check_in_out(student_id, date_of_correction, check_in_time, check_out_time, file_selection)
+
+    def add_hours(self, student_id, date_of_correction, hours_to_add, minutes_to_add, file_selection):
+        for filename in file_selection:
+            file_path = os.path.join("data", filename)
+            with open(file_path, "r+") as f:
+                lines = f.readlines()
+                found = False
+                for i, line in enumerate(lines):
+                    if student_id in line and str(date_of_correction) in line:
+                        match = re.search(r"Meeting Time Recorded: (\d+) hours (\d+) minutes", line)
+                        if match:
+                            current_hours = int(match.group(1))
+                            current_minutes = int(match.group(2))
+                            total_minutes = (current_hours * 60 + current_minutes) + (
+                                    hours_to_add * 60 + minutes_to_add
+                            )
+                            new_hours = total_minutes // 60
+                            new_minutes = total_minutes % 60
+                            lines[i] = line.replace(
+                                match.group(0),
+                                f"Meeting Time Recorded: {new_hours} hours {new_minutes} minutes",
+                            )
+                            found = True
+                            break
+                # If no existing record for that day, add a new one
+                if not found:
+                    check_in_time = datetime.datetime.strptime(f"{date_of_correction} 00:00:00.000000", "%Y-%m-%d %H:%M:%S.%f") 
+                    check_out_time = check_in_time + datetime.timedelta(hours=hours_to_add, minutes=minutes_to_add)
+                    check_out_time_str = check_out_time.strftime("%Y-%m-%d %H:%M:%S.%f") 
+                    lines.append(
+                        f"{student_id} Checked In at {check_in_time.strftime('%Y-%m-%d %H:%M:%S.%f')} and Checked Out at {check_out_time_str}, Meeting Time Recorded: {hours_to_add} hours {minutes_to_add} minutes\n"
+                    )
+                f.seek(0)
+                f.writelines(lines)
+                f.truncate()
+
+    def add_check_in_out(self, student_id, date_of_correction, check_in_time, check_out_time, file_selection):
+        for filename in file_selection:
+            file_path = os.path.join("data", filename)
+            # Format the check-in and check-out times correctly
+            check_in_datetime = datetime.datetime.strptime(f"{date_of_correction} {check_in_time}", "%Y-%m-%d %H:%M")
+            check_out_datetime = datetime.datetime.strptime(f"{date_of_correction} {check_out_time}", "%Y-%m-%d %H:%M")
+
+            # Calculate time difference
+            time_diff = check_out_datetime - check_in_datetime
+            total_seconds = time_diff.total_seconds()
+            hours, remainder = divmod(total_seconds, 3600)
+            minutes, _ = divmod(remainder, 60)
+
+            with open(file_path, "a") as f:
+                f.write(
+                    f"{student_id} Checked In at {check_in_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')} and Checked Out at {check_out_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
+                )
+
 
 attendance = Attendance()  # Create an instance of Attendance
 
@@ -157,22 +223,6 @@ def read_login_credentials():
         print (username + " " + password)
     return username, password
 
-# @app.route('/', methods=['GET', 'POST'])
-# def login():
-#     error = None
-#     if request.method == 'POST':
-#         username, password = read_login_credentials()
-#         if request.form['username'] != username or request.form['password'] != password:
-#             error = 'Invalid Credentials. Please try again.'
-#             print ("Correct Username is : " + username + " and Correct Password is : " + password)
-            
-#         else:
-#             session['username'] = request.form['username']
-#             return redirect('/' + random_string)
-#             print ("Correct Username is : " + username + " and Correct Password is : " + password)
-    
-    return render_template('login.html', error=error, version=version_number)
-
 @app.route('/volunteer+HASHSTRING', methods=['GET'])
 def handle_volunteer():
     return redirect("/volunteer" + r_string)
@@ -192,8 +242,9 @@ def home():
 @app.route('/WestwoodRoboticsAdmin', methods=['GET'])
 def admin():
     global id_validation_enabled
+    global random_string
     if 'username' in session and session['username'] == 'admin':
-        return render_template('admin.html', version=version_number, recent_events=recent_events, id_validation_enabled=id_validation_enabled)
+        return render_template('admin.html', version=version_number, recent_events=recent_events, id_validation_enabled=id_validation_enabled, r_string=r_string, random_string = random_string)
     else:
         session['next_url'] = url_for('admin')
         return redirect(url_for('admin_login'))
@@ -231,7 +282,7 @@ def admin_login():
 @app.route('/logout', methods=['GET'])
 def logout():
     session.pop('username', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('loginz'))
 
 # Add this new route to your Flask application
 @app.route('/calculate_hours', methods=['GET'])
@@ -527,9 +578,25 @@ def toggle_id_validation():
     id_validation_enabled = not id_validation_enabled
     return json.dumps({'id_validation_enabled': id_validation_enabled})
 
+@app.route('/WestwoodRobotics/' + random_string + '/hour_corrector', methods=['GET', 'POST'])
+def hours_corrector():
+
+    if request.method == 'POST':
+        student_id = request.form.get('student_id')
+        date_of_correction = request.form.get('date_of_correction')
+        hours_option = request.form.get('hours_option')
+        file_selection = request.form.getlist('file_selection')
+
+        attendance.correct_hours(student_id, date_of_correction, hours_option, file_selection)
+        # Add a success message or redirect as needed
+        return "Hours corrected successfully!"
+    else:
+        # This part will be executed for GET requests, rendering the form
+        attendance_files = [filename for filename in os.listdir("data") if filename.startswith("attendance")]
+        return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string)
+
 def main():
     app.run(debug=True)
 
 if __name__ == "__main__":
     main()
-

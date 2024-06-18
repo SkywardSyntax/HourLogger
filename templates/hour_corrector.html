@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hours Correction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 80%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 10px;
+        }
+        input, select {
+            margin-top: 5px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .checkbox-group {
+            margin-top: 20px;
+        }
+        .checkbox-group input {
+            margin-right: 5px;
+        }
+        .conditional-input {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Hours Correction Form</h2>
+        <form action="/WestwoodRobotics/{{ random_string }}/hour_corrector" method="post">
+            <label for="student_id">Student ID Number:</label>
+            <input type="text" id="student_id" name="student_id" required>
+
+            <label for="date_of_correction">Date of Correction:</label>
+            <input type="date" id="date_of_correction" name="date_of_correction" required>
+
+            <label for="hours_option">Correction Option:</label>
+            <select id="hours_option" name="hours_option" required>
+                <option value="add_hours">Add Hours</option>
+                <option value="check_in_out">Check-In/Out</option>
+            </select>
+
+            <div class="conditional-input" id="add_hours_inputs">
+                <label for="hours_to_add">Hours to Add:</label>
+                <input type="number" id="hours_to_add" name="hours_to_add" min="0" value="0">
+                <label for="minutes_to_add">Minutes to Add:</label>
+                <input type="number" id="minutes_to_add" name="minutes_to_add" min="0" max="59" value="0">
+            </div>
+            <div class="conditional-input" id="check_in_out_inputs">
+                <label for="check_in_time">Check-In Time (HH:MM):</label>
+                <input type="time" id="check_in_time" name="check_in_time">
+                <label for="check_out_time">Check-Out Time (HH:MM):</label>
+                <input type="time" id="check_out_time" name="check_out_time">
+            </div>
+
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="file_selection" value="archive.txt">Archive.txt</label>
+                {% for file in attendance_files %}
+                    <label><input type="checkbox" name="file_selection" value="{{ file }}">{{ file }}</label>
+                {% endfor %}
+            </div>
+
+            <input type="submit" value="Submit Correction">
+        </form>
+    </div>
+    <script>
+        const hoursOptionSelect = document.getElementById('hours_option');
+        const addHoursInputs = document.getElementById('add_hours_inputs');
+        const checkInOutInputs = document.getElementById('check_in_out_inputs');
+
+        hoursOptionSelect.addEventListener('change', () => {
+            if (hoursOptionSelect.value === 'add_hours') {
+                addHoursInputs.style.display = 'block';
+                checkInOutInputs.style.display = 'none';
+            } else if (hoursOptionSelect.value === 'check_in_out') {
+                addHoursInputs.style.display = 'none';
+                checkInOutInputs.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
