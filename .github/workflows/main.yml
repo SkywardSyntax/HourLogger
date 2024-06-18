@@ -18,6 +18,8 @@ jobs:
         sudo mv data/attendance.txt data/attendanceBackup.txt data/hourTotals.txt data/hourTotals.csv /tmp/data/ || true
         sudo mv data/archive.txt /tmp/data/ || true
         sudo mv Archives/* /tmp/data/ || true
+        # Move all files starting with "attendance-" in the data directory
+        sudo mv data/attendance-*.txt /tmp/data/ || true
 
     - uses: actions/checkout@v2
 
@@ -30,6 +32,8 @@ jobs:
         sudo mv /tmp/data/hourTotals.csv data/ || true
         sudo mv /tmp/data/archive.txt data/ || true
         sudo mv /tmp/data/* Archives/ || true
+        # Move all "attendance-" files back to the data directory
+        sudo mv /tmp/data/attendance-*.txt data/ || true
 
     - name: Stop Gunicorn server and remove screen
       run: |

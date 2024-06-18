@@ -378,9 +378,13 @@ def volunteer_select():
     if request.method == 'POST':
         event = request.form.get('event')
         eventName = request.form.get('eventName')
-        # Create a new file for each event
-        with open(f'data/attendance-{event}.txt', 'w') as f:
-            pass
+        # Only create a new file if it doesn't already exist
+        try:
+            # Open the file in 'x' mode which fails if the file already exists
+            with open(f'data/attendance-{event}.txt', 'x') as f:
+                pass  # File is created, do nothing else
+        except FileExistsError:
+            pass  # File already exists, do nothing
         return redirect(url_for('volunteer_login', event=event, eventName=eventName))
     
     # Read events from event_list.txt
