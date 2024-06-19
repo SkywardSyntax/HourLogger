@@ -557,8 +557,9 @@ def hour_report():
 
 def validate_student_id(student_id):
     global id_validation_enabled
-    if not id_validation_enabled:
+    if not id_validation_enabled and student_id.isdigit() and len(student_id) == 6:
         return True
+    
     with open('data/valid_students.txt', 'r') as file:
         valid_ids = file.readlines()
     valid_ids = [line.strip().split(' | ')[0] for line in valid_ids]
