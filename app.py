@@ -50,7 +50,8 @@ class Attendance:
 
     def check_in_out(self, id, event=None, action=None):
         global recent_events
-        now = datetime.datetime.now()
+
+        now = datetime.datetime.now() - datetime.timedelta(hours=5)
         attendance_file = 'data/attendance.txt' if event is None else f'data/attendance-{event}.txt'
         action_str = "Checked In" if action == "check_in" else "Checked Out"
         opposite_action_str = "Checked Out" if action == "check_in" else "Checked In"
@@ -71,7 +72,7 @@ class Attendance:
 
         if action == "check_in":
             with open(attendance_file, 'a') as f:
-                f.write(f"{id} Checked In at {now}\n")
+                f.write(f"{id} Checked In at {now.strftime('%Y-%m-%d %H:%M:%S.%f')}\n")
         else:
             time_diff = now - check_in_time
             total_seconds = time_diff.total_seconds()
@@ -79,7 +80,7 @@ class Attendance:
             minutes, _ = divmod(remainder, 60)
             for i, line in reversed(list(enumerate(lines))):
                 if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
-                    lines[i] = f"{id} Checked In at {check_in_time} and Checked Out at {now}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
+                    lines[i] = f"{id} Checked In at {check_in_time.strftime('%Y-%m-%d %H:%M:%S.%f')} and Checked Out at {now.strftime('%Y-%m-%d %H:%M:%S.%f')}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
                     break
             with open(attendance_file, 'w') as f:
                 f.writelines(lines)
