@@ -7,18 +7,19 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
+            background-color: #121212; 
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: #f5f5f5; 
         }
         .container {
             width: 80%;
             padding: 20px;
-            background-color: #fff;
+            background-color: #1e1e1e; 
             border-radius: 8px;
-            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            box-shadow: 0px 0px 10px 0px rgba(255, 255, 255, 0.1); 
         }
         form {
             display: flex;
@@ -31,21 +32,27 @@
             margin-top: 5px;
             padding: 10px;
             border-radius: 4px;
-            border: 1px solid #ccc;
+            border: 1px solid #444; 
+            background-color: #2d2d2d; 
+            color: #f5f5f5; 
             font-size: 16px;
         }
         input[type="submit"] {
             margin-top: 20px;
-            background-color: #4CAF50;
+            background-color: #007bff; 
             color: white;
             border: none;
             cursor: pointer;
         }
         input[type="submit"]:hover {
-            background-color: #45a049;
+            background-color: #0056b3; 
         }
         .checkbox-group {
             margin-top: 20px;
+        }
+        .checkbox-group label {
+            display: block; 
+            margin-bottom: 5px;
         }
         .checkbox-group input {
             margin-right: 5px;
@@ -55,7 +62,6 @@
             margin-top: 10px;
         }
 
-        /* Style for the success message */
         .success-message {
             background-color: #d4edda;
             border-color: #c3e6cb;
@@ -64,6 +70,20 @@
             border-radius: 4px;
             margin-top: 20px;
         }
+
+        .error-message {
+            background-color: #f8d7da; 
+            border-color: #f5c6cb; 
+            color: #721c24; 
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        input:disabled {
+            background-color: #444; 
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -71,34 +91,19 @@
         <h2>Hours Correction Form</h2>
 
         {% if message %}
-            <div class="success-message">{{ message }}</div>
+            {% if "Error:" in message %}
+                <div class="error-message">{{ message }}</div> 
+            {% else %}
+                <div class="success-message">{{ message }}</div>
+            {% endif %}
         {% endif %}
 
         <form action="/WestwoodRobotics/{{ random_string }}/hour_corrector" method="post">
             <label for="student_id">Student ID Number:</label>
-            <input type="text" id="student_id" name="student_id" required>
+            <input type="text" id="student_id" name="student_id" required maxlength="6">
 
             <label for="date_of_correction">Date of Correction:</label>
-            <input type="date" id="date_of_correction" name="date_of_correction" required>
-
-            <label for="hours_option">Correction Option:</label>
-            <select id="hours_option" name="hours_option" required>
-                <option value="add_hours">Add Hours</option>
-                <option value="check_in_out">Check-In/Out</option>
-            </select>
-
-            <div class="conditional-input" id="add_hours_inputs">
-                <label for="hours_to_add">Hours to Add:</label>
-                <input type="number" id="hours_to_add" name="hours_to_add" min="0" value="0">
-                <label for="minutes_to_add">Minutes to Add:</label>
-                <input type="number" id="minutes_to_add" name="minutes_to_add" min="0" max="59" value="0">
-            </div>
-            <div class="conditional-input" id="check_in_out_inputs">
-                <label for="check_in_time">Check-In Time (HH:MM):</label>
-                <input type="time" id="check_in_time" name="check_in_time">
-                <label for="check_out_time">Check-Out Time (HH:MM):</label>
-                <input type="time" id="check_out_time" name="check_out_time">
-            </div>
+            <input type="date" id="date_of_correction" name="date_of_correction" required disabled>
 
             <div class="checkbox-group">
                 <label><input type="checkbox" name="file_selection" value="archive.txt">Archive.txt</label>
@@ -107,21 +112,125 @@
                 {% endfor %}
             </div>
 
-            <input type="submit" value="Submit Correction">
+            <label for="hours_option">Correction Option:</label>
+            <select id="hours_option" name="hours_option" required disabled>
+                <option value="add_hours">Add Hours</option>
+                <option value="check_in_out">Check-In/Out</option>
+                <option value="exclusive_check_in_out" id="exclusive-option" style="display: none;">Exclusive Check-In/Out</option> 
+            </select>
+
+            <div class="conditional-input" id="add_hours_inputs">
+                <label for="hours_to_add">Hours to Add:</label>
+                <input type="number" id="hours_to_add" name="hours_to_add" min="0" value="0" disabled>
+                <label for="minutes_to_add">Minutes to Add:</label>
+                <input type="number" id="minutes_to_add" name="minutes_to_add" min="0" max="59" value="0" disabled>
+            </div>
+            <div class="conditional-input" id="check_in_out_inputs">
+                <label for="check_in_time">Check-In Time (HH:MM):</label>
+                <input type="time" id="check_in_time" name="check_in_time" disabled>
+                <label for="check_out_time">Check-Out Time (HH:MM):</label>
+                <input type="time" id="check_out_time" name="check_out_time" disabled>
+            </div>
+
+            <input type="submit" value="Submit Correction" disabled> 
         </form>
     </div>
     <script>
+        const studentIdInput = document.getElementById('student_id');
+        const dateOfCorrectionInput = document.getElementById('date_of_correction');
+        const fileSelectionCheckboxes = document.querySelectorAll('input[name="file_selection"]');
         const hoursOptionSelect = document.getElementById('hours_option');
         const addHoursInputs = document.getElementById('add_hours_inputs');
         const checkInOutInputs = document.getElementById('check_in_out_inputs');
+        const checkInTimeInput = document.getElementById('check_in_time');
+        const submitButton = document.querySelector('input[type="submit"]');
+        const exclusiveOption = document.getElementById('exclusive-option'); 
+
+        let previousCheckbox = null; 
+
+        studentIdInput.addEventListener('input', () => {
+            if (studentIdInput.value.length === 6) {
+                dateOfCorrectionInput.disabled = false; 
+            } else {
+                disableFormFields();
+            }
+        });
+
+        dateOfCorrectionInput.addEventListener('change', () => {
+            if (studentIdInput.value.length === 6 && previousCheckbox !== null) {
+                checkExistingCheckIn();
+            }
+        });
+
+        fileSelectionCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                if (previousCheckbox !== null && previousCheckbox !== checkbox) {
+                    previousCheckbox.checked = false;
+                }
+
+                previousCheckbox = checkbox; 
+
+                if (studentIdInput.value.length === 6 && dateOfCorrectionInput.value) {
+                    checkExistingCheckIn();
+                } else {
+                    disableFormFields();
+                }
+            });
+        });
+
+        function checkExistingCheckIn() {
+            const studentId = studentIdInput.value;
+            const dateOfCorrection = dateOfCorrectionInput.value;
+            const selectedFile = previousCheckbox.value; 
+
+            fetch(`/check_exclusive_checkin/${studentId}/${dateOfCorrection}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ files: [selectedFile] }) // Send selected file
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    checkInTimeInput.disabled = true;
+                    exclusiveOption.style.display = 'block'; // Show exclusive option
+                } else {
+                    checkInTimeInput.disabled = false;
+                    exclusiveOption.style.display = 'none'; // Hide exclusive option
+                }
+
+                hoursOptionSelect.disabled = false;
+                submitButton.disabled = false;
+            });
+        }
+
+        function disableFormFields() {
+            dateOfCorrectionInput.disabled = true;
+            hoursOptionSelect.disabled = true;
+            submitButton.disabled = true;
+            checkInTimeInput.disabled = true;
+            document.getElementById('hours_to_add').disabled = true;
+            document.getElementById('minutes_to_add').disabled = true;
+            document.getElementById('check_out_time').disabled = true;
+        }
 
         hoursOptionSelect.addEventListener('change', () => {
             if (hoursOptionSelect.value === 'add_hours') {
                 addHoursInputs.style.display = 'block';
                 checkInOutInputs.style.display = 'none';
-            } else if (hoursOptionSelect.value === 'check_in_out') {
+                document.getElementById('hours_to_add').disabled = false;
+                document.getElementById('minutes_to_add').disabled = false;
+            } else if (hoursOptionSelect.value === 'check_in_out' || 
+                       hoursOptionSelect.value === 'exclusive_check_in_out') {
                 addHoursInputs.style.display = 'none';
                 checkInOutInputs.style.display = 'block';
+                document.getElementById('check_out_time').disabled = false;
+                if (hoursOptionSelect.value === 'exclusive_check_in_out') {
+                    checkExistingCheckIn(); // Recheck for exclusive check-in 
+                } else {
+                    checkInTimeInput.disabled = false; // Enable check-in for regular check-in/out
+                }
             }
         });
     </script>

@@ -120,6 +120,11 @@ class Attendance:
             check_out_time = request.form.get('check_out_time')
 
             self.add_check_in_out(student_id, date_of_correction, check_in_time, check_out_time, file_selection)
+        elif hours_option == "exclusive_check_in_out": #new
+            check_in_time = request.form.get('check_in_time')
+            check_out_time = request.form.get('check_out_time')
+
+            self.add_exclusive_check_in_out(student_id, date_of_correction, check_in_time, check_out_time, file_selection)
 
     def add_hours(self, student_id, date_of_correction, hours_to_add, minutes_to_add, file_selection):
         for filename in file_selection:
@@ -195,6 +200,39 @@ class Attendance:
                         break  # Only delete the first matching "Checked In" entry
 
             with open(file_path, "a") as f:
+                f.write(
+                    f"{student_id} Checked In at {check_in_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')} and Checked Out at {check_out_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
+                )
+    
+    def add_exclusive_check_in_out(self, student_id, date_of_correction, check_in_time, check_out_time, file_selection):
+        for filename in file_selection:
+            file_path = os.path.join("data", filename)
+
+            with open(file_path, "r+") as f:
+                lines = f.readlines()
+                f.seek(0)
+                f.truncate(0)
+
+                check_in_found = False
+                for i, line in enumerate(lines):
+                    if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line and "Checked Out" not in line:
+                        check_in_found = True
+                        check_in_time_str = line.split(" at ")[1].strip() # Get existing check-in time
+                        check_in_datetime = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f") 
+                        # Delete the existing "Checked In" line
+                        continue
+                    f.write(line)
+
+                if not check_in_found:
+                    return "Error: No existing check-in found for this student and date."  
+
+                check_out_datetime = datetime.datetime.strptime(f"{date_of_correction} {check_out_time}", "%Y-%m-%d %H:%M")
+
+                time_diff = check_out_datetime - check_in_datetime
+                total_seconds = time_diff.total_seconds()
+                hours, remainder = divmod(total_seconds, 3600)
+                minutes, _ = divmod(remainder, 60)
+
                 f.write(
                     f"{student_id} Checked In at {check_in_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')} and Checked Out at {check_out_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
                 )
@@ -618,14 +656,33 @@ def hours_corrector():
         hours_option = request.form.get('hours_option')
         file_selection = request.form.getlist('file_selection')
 
-        attendance.correct_hours(student_id, date_of_correction, hours_option, file_selection)
-        # Add a success message or redirect as needed
-        message = "Hours corrected successfully!"
+        result = attendance.correct_hours(student_id, date_of_correction, hours_option, file_selection)
+        if isinstance(result, str): # Check if result is an error message
+            message = result
+        else:
+            message = "Hours corrected successfully!"
     else:
         message = ""
     # This part will be executed for GET requests, rendering the form
     attendance_files = [filename for filename in os.listdir("data") if filename.startswith("attendance")]
     return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string, message = message)
+
+@app.route('/check_exclusive_checkin/<student_id>/<date_of_correction>', methods=['POST'])
+def check_exclusive_checkin(student_id, date_of_correction):
+    exists = False
+    selected_files = request.json.get('files', [])  # Get selected files from request
+    for filename in selected_files: # Check only in selected files
+        file_path = os.path.join("data", filename)
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line and "Checked Out" not in line:
+                    exists = True
+                    break 
+        if exists:
+            break
+
+    return json.dumps({'exists': exists})
 
 def main():
     app.run(debug=True)
