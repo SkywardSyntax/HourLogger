@@ -54,11 +54,26 @@
             display: none;
             margin-top: 10px;
         }
+
+        /* Style for the success message */
+        .success-message {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Hours Correction Form</h2>
+
+        {% if message %}
+            <div class="success-message">{{ message }}</div>
+        {% endif %}
+
         <form action="/WestwoodRobotics/{{ random_string }}/hour_corrector" method="post">
             <label for="student_id">Student ID Number:</label>
             <input type="text" id="student_id" name="student_id" required>

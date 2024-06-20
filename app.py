@@ -126,6 +126,12 @@ class Attendance:
             file_path = os.path.join("data", filename)
             with open(file_path, "r+") as f:
                 lines = f.readlines()
+                for i, line in enumerate(lines):
+                    if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line and "Checked Out" not in line:
+                        del lines[i]
+                        lines = [line for line in lines if line.strip()]
+                        break  # Only delete the first matching "Checked In" entry
+                # Now proceed with adding the new hours
                 found = False
                 for i, line in enumerate(lines):
                     if student_id in line and str(date_of_correction) in line:
@@ -152,6 +158,8 @@ class Attendance:
                     lines.append(
                         f"{student_id} Checked In at {check_in_time.strftime('%Y-%m-%d %H:%M:%S.%f')} and Checked Out at {check_out_time_str}, Meeting Time Recorded: {hours_to_add} hours {minutes_to_add} minutes\n"
                     )
+                
+                
                 f.seek(0)
                 f.writelines(lines)
                 f.truncate()
@@ -168,6 +176,23 @@ class Attendance:
             total_seconds = time_diff.total_seconds()
             hours, remainder = divmod(total_seconds, 3600)
             minutes, _ = divmod(remainder, 60)
+            with open(file_path, "r+") as f:
+                lines = f.readlines()
+                f.seek(0)  # Go back to the start of the file
+                f.truncate(0)  # Truncate the file to remove old content
+
+                line_deleted = False
+
+                for i, line in enumerate(lines):
+                    if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line and "Checked Out" not in line:
+                        line_deleted = True
+                    else:
+                        f.write(line)  # Write back all lines except the one to delete
+
+                    if line_deleted:
+                        # Once a line is deleted, write the rest without checking
+                        f.writelines(lines[i+1:])
+                        break  # Only delete the first matching "Checked In" entry
 
             with open(file_path, "a") as f:
                 f.write(
@@ -586,7 +611,7 @@ def toggle_id_validation():
 
 @app.route('/WestwoodRobotics/' + random_string + '/hour_corrector', methods=['GET', 'POST'])
 def hours_corrector():
-
+    message = ""
     if request.method == 'POST':
         student_id = request.form.get('student_id')
         date_of_correction = request.form.get('date_of_correction')
@@ -595,11 +620,12 @@ def hours_corrector():
 
         attendance.correct_hours(student_id, date_of_correction, hours_option, file_selection)
         # Add a success message or redirect as needed
-        return "Hours corrected successfully!"
+        message = "Hours corrected successfully!"
     else:
-        # This part will be executed for GET requests, rendering the form
-        attendance_files = [filename for filename in os.listdir("data") if filename.startswith("attendance")]
-        return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string)
+        message = ""
+    # This part will be executed for GET requests, rendering the form
+    attendance_files = [filename for filename in os.listdir("data") if filename.startswith("attendance")]
+    return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string, message = message)
 
 def main():
     app.run(debug=True)
