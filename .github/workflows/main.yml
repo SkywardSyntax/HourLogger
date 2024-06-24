@@ -15,6 +15,12 @@ jobs:
     - name: Move data files out of repository
       run: |
         sudo mkdir -p /tmp/data
+        sudo mkdir -p /tmp/data/rawHours
+        sudo mkdir -p /tmp/data/totalHours
+        sudo mkdir -p /tmp/data/eventRawHours
+        sudo mkdir -p /tmp/data/eventTotalHours
+        sudo mkdir -p /tmp/data/hourReports
+        sudo mkdir -p /tmp/data/Archives
         sudo mv data/rawHours/* /tmp/data/rawHours/ || true
         sudo mv data/totalHours/* /tmp/data/totalHours/ || true
         sudo mv data/eventRawHours/* /tmp/data/eventRawHours/ || true
@@ -42,4 +48,5 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         sudo screen -dmS gunicorn sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 --preload app:app
+
         
