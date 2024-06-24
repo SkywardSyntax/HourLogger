@@ -625,6 +625,18 @@ def check_exclusive_checkin(student_id, date_of_correction):
         if exists:
             break
 
+@app.route('/volunteer-hours', methods=['GET', 'POST'])
+def volunteer_hours():
+    if request.method == 'POST':
+        event = request.form.get('event')
+        eventName = request.form.get('eventName')
+        return redirect(url_for('event_hours', eventname=event))
+
+    with open('data/event_list.txt', 'r') as file:
+        events = file.readlines()
+
+    return render_template('volunteer_hours.html', events=events, version=version_number)
+
     return json.dumps({'exists': exists})
 
 def main():

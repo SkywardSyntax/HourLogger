@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Volunteer Hours</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            overflow: auto;
+            width: 500px;
+            text-align: center;
+        }
+
+        input[type="submit"] {
+            width: 50%;
+            background-color: #4CAF50;
+            color: black;
+            padding: 5px 5px;
+            border: none;
+            font-size: 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+        }
+        /* Style for version display */
+        .version-display {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: black;
+            padding: 5px;
+            font-size: 12px;
+        }
+                /* Go Back to Home button */
+        .back-to-home {
+            background-color: #4CAF50; /* Volunteer login button color */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-decoration: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>View Hours for</h1> 
+        {% for event in events %}
+            {% set event_details = event.strip().split(' | ') %}
+            <form method="POST">
+                <input type="hidden" name="event" value="{{ event_details[0] }}">
+                <input type="submit" name="eventName" value="{{ event_details[1] }}">
+            </form>
+        {% endfor %}
+    </div>
+    <div class="version-display">{{ version }}</div>
+    <a href="/" class="back-to-home">Go Back to Home</a>
+</body>
+</html>
