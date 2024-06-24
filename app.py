@@ -448,7 +448,6 @@ def event_hours(eventname):
 
     event_totals = {}
 
-
     with open(event_file, 'r') as f:
         lines = f.readlines()
         for line in lines:
@@ -484,26 +483,14 @@ def event_hours(eventname):
             hours, minutes = divmod(total_minutes, 60)
             total_event_hours = total_minutes / 60
             outreach_hours = min(round(total_event_hours * outreach_scale_factor, 2), outreach_hour_cap)
-            event_outreach_hours[id] = outreach_hours
-            f.write(f"{id} | Total Time: {hours} hours {minutes} minutes | Outreach Hours: {outreach_hours}\n")
+            
+            # Calculate outreach hours in hours and minutes
+            outreach_hours_int = int(outreach_hours)
+            outreach_minutes = int(round((outreach_hours - outreach_hours_int) * 60))
 
-    # Get event name from event_list.txt
-    with open('data/event_list.txt', 'r') as f:
-        for line in f:
-            event_code, event_name, outreach_scale_factor, outreach_hour_cap = line.strip().split(' | ')
-            if event_code == eventname:
-                outreach_scale_factor = float(outreach_scale_factor)
-                break
-        else:
-            outreach_scale_factor = 1.0  
-            event_name = eventname # Use event code as name if not found
+            event_outreach_hours[id] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+            f.write(f"{id} | {hours} hours {minutes} minutes | {outreach_hours_int} hours {outreach_minutes} minutes\n") 
 
-    event_outreach_hours = {}
-    for id, total_minutes in event_totals.items():
-        event_outreach_hours[id] = round((total_minutes / 60) * outreach_scale_factor, 2)
-        if event_outreach_hours[id] > float(outreach_hour_cap):
-            event_outreach_hours[id] = float(outreach_hour_cap)
-    
     with open(event_totals_file, 'r') as f:
         data = f.read()
 
@@ -562,7 +549,7 @@ def hour_report():
             total_hours = student_totals[student_id] // 60
             student_totals[student_id] = {'hours': total_hours, 'met_reqs': total_hours >= hour_total}
 
-        csv_filename = 'data/hourhour_report.csv'
+        csv_filename = 'data/hourReports/hour_report.csv'
         with open(csv_filename, 'w', newline='') as csvfile:
             fieldnames = ['Student ID', 'Total Hours', 'Met Requirements']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)

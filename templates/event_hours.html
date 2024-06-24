@@ -6,29 +6,32 @@
         body {
             font-family: 'Roboto', sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column; /* Arrange items vertically */
             align-items: center;
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
         }
+
         .container {
             text-align: center;
             padding: 20px;
             background-color: #fff;
             border-radius: 15px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%; /* Occupy 80% of the viewport width */
+            margin-bottom: 20px; /* Add space between container and buttons */
         }
+
         h1 {
             color: #333;
             font-size: 24px;
         }
+
         pre {
-            font-family: 'Courier New', monospace;
-            color: #333;
-            line-height: 1.6;
             display: none; /* Hide the pre element */
         }
+
         #searchInput {
             padding: 10px;
             font-size: 16px;
@@ -37,10 +40,12 @@
             width: 300px;
             transition: border .3s;
         }
+
         #searchInput:focus {
             border-color: #007BFF;
             outline: none;
         }
+
         /* Style for version display */
         .version-display {
             position: fixed;
@@ -51,6 +56,7 @@
             padding: 5px;
             font-size: 12px;
         }
+
         /* Go Back to Home button */
         .back-to-home {
             background-color: #4CAF50; /* Volunteer login button color */
@@ -67,16 +73,19 @@
             bottom: 20px;
             right: 20px;
         }
+
         table {
-            margin: 20px auto; /* Center the table */
+            margin: 0 auto 20px auto; /* Center the table horizontally and add bottom margin*/
             width: 80%; 
             border-collapse: collapse;
         }
+
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
+
         th {
             background-color: #f2f2f2;
         }
@@ -103,7 +112,7 @@
                     {% set parts = line.split(" | ") %}
                     {% set student_id = parts[0] %}
                     {% set time_str = parts[1] %} 
-                    {% set outreach_hours_str = parts[2].split(": ")[1] %} 
+                    {% set outreach_hours_str = parts[2] %} 
                     <tr>
                         <td>{{ student_id }}</td>
                         <td>{{ time_str }}</td>
@@ -114,6 +123,7 @@
             </tbody>
         </table>
     </div>
+
     <div class="version-display">{{ version }}</div>
     <a href="/" class="back-to-home">Go Back to Home</a>
 
@@ -136,11 +146,10 @@
 
                 filteredData.split('\n').forEach(function(line) {
                     if (line) {
-                        var parts = line.split(" Total Time: ");
+                        var parts = line.split(" | ");
                         var student_id = parts[0];
-                        var time_str = parts[1];
-                        // Access outreach hours from the JavaScript object
-                        var outreach_hours = eventOutreachHours[student_id] || 0;
+                        var time_str = parts[1]; // Get only the time string
+                        var outreach_hours = eventOutreachHours[student_id] || "0 hours 0 minutes"; 
 
                         var row = document.createElement('tr');
                         row.innerHTML = `
