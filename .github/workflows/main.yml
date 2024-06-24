@@ -42,3 +42,4 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         sudo screen -dmS gunicorn sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 --preload app:app
+        
