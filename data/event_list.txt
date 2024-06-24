@@ -1,1 +1,1 @@
-EVENT1 | Robocamp
+EVENT1 | Robocamp | 0.33333333 | 12.00

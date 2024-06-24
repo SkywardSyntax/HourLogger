@@ -3,6 +3,32 @@
 <head>
     <title>Event Hours</title>
     <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        pre {
+            font-family: 'Courier New', monospace;
+            color: #333;
+            line-height: 1.6;
+            display: none; /* Hide the pre element */
+        }
         #searchInput {
             padding: 10px;
             font-size: 16px;
@@ -41,8 +67,60 @@
             bottom: 20px;
             right: 20px;
         }
+        table {
+            margin: 20px auto; /* Center the table */
+            width: 80%; 
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Total Hours for {{ event_name }}</h1> 
+        <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}">        
+        <pre id="data">{{ data }}</pre> 
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Number</th>
+                    <th>Total Logged Time</th>
+                    <th>Outreach Hours Awarded</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for line in data.splitlines() %}
+                {% if line %}
+                    {% set parts = line.split(" | ") %}
+                    {% set student_id = parts[0] %}
+                    {% set time_str = parts[1] %} 
+                    {% set outreach_hours_str = parts[2].split(": ")[1] %} 
+                    <tr>
+                        <td>{{ student_id }}</td>
+                        <td>{{ time_str }}</td>
+                        <td>{{ outreach_hours_str }}</td> 
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="version-display">{{ version }}</div>
+    <a href="/" class="back-to-home">Go Back to Home</a>
+
     <script>
+        // Pass event_outreach_hours as a JavaScript object
+        var eventOutreachHours = JSON.parse('{{ event_outreach_hours | tojson | safe }}');
+
         window.onload = function() {
             var originalData = document.getElementById('data').textContent;
             var searchInputField = document.getElementById('searchInput');
@@ -52,16 +130,29 @@
                 var filteredData = originalData.split('\n').filter(function(line) {
                     return line.startsWith(searchInput);
                 }).join('\n');
-                document.getElementById('data').textContent = filteredData;
+
+                var tableBody = document.querySelector('table tbody');
+                tableBody.innerHTML = ''; 
+
+                filteredData.split('\n').forEach(function(line) {
+                    if (line) {
+                        var parts = line.split(" Total Time: ");
+                        var student_id = parts[0];
+                        var time_str = parts[1];
+                        // Access outreach hours from the JavaScript object
+                        var outreach_hours = eventOutreachHours[student_id] || 0;
+
+                        var row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${student_id}</td>
+                            <td>${time_str}</td>
+                            <td>${outreach_hours}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    }
+                });
             });
         };
     </script>
-</head>
-<body>
-    <h1>Total Hours</h1>
-    <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}">
-    <pre id="data">{{ data }}</pre>
-    <div class="version-display">{{ version }}</div>
-    <a href="/" class="back-to-home">Go Back to Home</a>
 </body>
 </html>

@@ -20,9 +20,9 @@ def calculate_total_time():
 
     # Read existing totals from hourTotals.txt
     if not os.path.exists('data/hourTotals.txt'):
-        open('data/hourTotals.txt', 'w').close()
+        open('data/totalHours/hourTotals.txt', 'w').close()
     else:
-        with open('data/hourTotals.txt', 'r') as f:
+        with open('data/totalHours/hourTotals.txt', 'r') as f:
             for line in f:
                 match = re.match(r'ID: (\d+), Total time: (\d+) hours (\d+) minutes', line.strip())
                 if match:
@@ -31,9 +31,9 @@ def calculate_total_time():
 
     # Add new totals from attendance.txt
     if not os.path.exists('data/attendance.txt'):
-        open('data/attendance.txt', 'w').close()
+        open('data/rawHours/attendance.txt', 'w').close()
     else:
-        with open('data/attendance.txt', 'r') as f:
+        with open('data/rawHours/attendance.txt', 'r') as f:
             lines = f.readlines()
             for line in lines:
                 line = line.strip()  # Strip newline character
@@ -60,24 +60,24 @@ def calculate_total_time():
         totals[id]['minutes'] = minutes
 
     # Append attendance.txt to archive.txt
-    with open('data/attendance.txt', 'r') as attendance, open('data/archive.txt', 'a') as archive:
+    with open('data/rawHours/attendance.txt', 'r') as attendance, open('data/rawHours/archive.txt', 'a') as archive:
         archive.writelines(attendance.readlines())
 
     # Sort archive.txt
-    with open('data/archive.txt', 'r') as archive:
+    with open('data/rawHours/archive.txt', 'r') as archive:
         lines = archive.readlines()
         sorted_lines = quicksort(lines)
-    with open('data/archive.txt', 'w') as archive:
+    with open('data/rawHours/archive.txt', 'w') as archive:
         archive.writelines(sorted_lines)
 
     # Clear attendance.txt
-    open('data/attendance.txt', 'w').close()
+    open('data/rawHours/attendance.txt', 'w').close()
 
     # Write incomplete entries to attendance.txt and attendanceBackup.txt
-    with open('data/attendance.txt', 'w') as f:
+    with open('data/rawHours/attendance.txt', 'w') as f:
         for line in incomplete_entries:
             f.write(line + '\n')
-    with open('data/attendanceBackup.txt', 'w') as f:
+    with open('data/rawHours/attendanceBackup.txt', 'w') as f:
         for line in incomplete_entries:
             f.write(line + '\n')
 
@@ -91,17 +91,17 @@ def calculate_total_time():
 totals = calculate_total_time()
 
 # Write totals to hourTotals.txt
-with open('data/hourTotals.txt', 'w') as f:
+with open('data/totalHours/hourTotals.txt', 'w') as f:
     for id, time in totals.items():
         f.write(f"ID: {id}, Total time: {time['hours']} hours {time['minutes']} minutes\n")
 
 totals = {}
 
 # Read existing totals from hourTotals.txt
-if not os.path.exists('data/hourTotals.txt'):
-    open('data/hourTotals.txt', 'w').close()
+if not os.path.exists('data/totalHours/hourTotals.txt'):
+    open('data/totalHours/hourTotals.txt', 'w').close()
 else:
-    with open('data/hourTotals.txt', 'r') as f:
+    with open('data/totalHours/hourTotals.txt', 'r') as f:
         for line in f:
             match = re.match(r'ID: (\d+), Total time: (\d+) hours (\d+) minutes', line.strip())
             if match:
@@ -109,7 +109,7 @@ else:
                 totals[id] = {'hours': int(hours), 'minutes': int(minutes)}
 
 # Write totals to hourTotals.csv
-with open('data/hourTotals.csv', 'w', newline='') as f:
+with open('data/totalHours/hourTotals.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['ID', 'Total Hours'])  # Write the header
     for id, time in totals.items():

@@ -22,28 +22,22 @@ random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=1
 r_string = ("/" + random_string)
 python_executable = sys.executable
 
-# Implement a global dictionary to track the last request time for each client IP address.
 client_cooldowns = {}
 client_request_counts = {}
 
-# Read version number from version.txt
 with open('data/version.txt', 'r') as version_file:
     version_number = version_file.read().strip()
 
-# Global list to store the last 3 events
 recent_events = ["", "", ""]
 
-# Global variable to track the state of ID validation
 id_validation_enabled = False
 
 class Attendance:
     def __init__(self):
-        # Read the data from attendanceBackup.txt
-        with open('data/attendanceBackup.txt', 'r') as backup_file:
+        with open('data/rawHours/attendanceBackup.txt', 'r') as backup_file:
             backup_data = backup_file.read()
 
-        # Write the backup data to attendance.txt
-        with open('data/attendance.txt', 'w') as attendance_file:
+        with open('data/rawHours/attendance.txt', 'w') as attendance_file:
             attendance_file.write(backup_data)
 
         self.records = {}
@@ -52,7 +46,7 @@ class Attendance:
         global recent_events
 
         now = datetime.datetime.now() - datetime.timedelta(hours=5)
-        attendance_file = 'data/attendance.txt' if event is None else f'data/attendance-{event}.txt'
+        attendance_file = 'data/rawHours/attendance.txt' if event is None else f'data/eventRawHours/attendance-{event}.txt'
         action_str = "Checked In" if action == "check_in" else "Checked Out"
         opposite_action_str = "Checked Out" if action == "check_in" else "Checked In"
 
@@ -94,9 +88,8 @@ class Attendance:
         if not validate_student_id(id):
             return "Invalid Student ID. Please try again."
         now = datetime.datetime.now()
-        print(f"check_status_and_act called with id {id}")
 
-        attendance_file = 'data/attendance.txt' if event is None else f'data/attendance-{event}.txt'
+        attendance_file = 'data/rawHours/attendance.txt' if event is None else f'data/eventRawHours/attendance-{event}.txt'
         if not os.path.exists(attendance_file):
             open(attendance_file, 'w').close()
 
@@ -120,7 +113,7 @@ class Attendance:
             check_out_time = request.form.get('check_out_time')
 
             self.add_check_in_out(student_id, date_of_correction, check_in_time, check_out_time, file_selection)
-        elif hours_option == "exclusive_check_in_out": #new
+        elif hours_option == "exclusive_check_in_out": 
             check_in_time = request.form.get('check_in_time')
             check_out_time = request.form.get('check_out_time')
 
@@ -135,8 +128,7 @@ class Attendance:
                     if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line and "Checked Out" not in line:
                         del lines[i]
                         lines = [line for line in lines if line.strip()]
-                        break  # Only delete the first matching "Checked In" entry
-                # Now proceed with adding the new hours
+                        break  
                 found = False
                 for i, line in enumerate(lines):
                     if student_id in line and str(date_of_correction) in line:
@@ -155,7 +147,6 @@ class Attendance:
                             )
                             found = True
                             break
-                # If no existing record for that day, add a new one
                 if not found:
                     check_in_time = datetime.datetime.strptime(f"{date_of_correction} 00:00:00.000000", "%Y-%m-%d %H:%M:%S.%f") 
                     check_out_time = check_in_time + datetime.timedelta(hours=hours_to_add, minutes=minutes_to_add)
@@ -172,19 +163,17 @@ class Attendance:
     def add_check_in_out(self, student_id, date_of_correction, check_in_time, check_out_time, file_selection):
         for filename in file_selection:
             file_path = os.path.join("data", filename)
-            # Format the check-in and check-out times correctly
             check_in_datetime = datetime.datetime.strptime(f"{date_of_correction} {check_in_time}", "%Y-%m-%d %H:%M")
             check_out_datetime = datetime.datetime.strptime(f"{date_of_correction} {check_out_time}", "%Y-%m-%d %H:%M")
 
-            # Calculate time difference
             time_diff = check_out_datetime - check_in_datetime
             total_seconds = time_diff.total_seconds()
             hours, remainder = divmod(total_seconds, 3600)
             minutes, _ = divmod(remainder, 60)
             with open(file_path, "r+") as f:
                 lines = f.readlines()
-                f.seek(0)  # Go back to the start of the file
-                f.truncate(0)  # Truncate the file to remove old content
+                f.seek(0) 
+                f.truncate(0) 
 
                 line_deleted = False
 
@@ -192,12 +181,11 @@ class Attendance:
                     if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line and "Checked Out" not in line:
                         line_deleted = True
                     else:
-                        f.write(line)  # Write back all lines except the one to delete
+                        f.write(line)  
 
                     if line_deleted:
-                        # Once a line is deleted, write the rest without checking
                         f.writelines(lines[i+1:])
-                        break  # Only delete the first matching "Checked In" entry
+                        break 
 
             with open(file_path, "a") as f:
                 f.write(
@@ -217,9 +205,8 @@ class Attendance:
                 for i, line in enumerate(lines):
                     if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line and "Checked Out" not in line:
                         check_in_found = True
-                        check_in_time_str = line.split(" at ")[1].strip() # Get existing check-in time
+                        check_in_time_str = line.split(" at ")[1].strip() 
                         check_in_datetime = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f") 
-                        # Delete the existing "Checked In" line
                         continue
                     f.write(line)
 
@@ -238,7 +225,7 @@ class Attendance:
                 )
 
 
-attendance = Attendance()  # Create an instance of Attendance
+attendance = Attendance() 
 
 def check_client_cooldown(client_ip):
     current_time = time.time()
@@ -258,7 +245,7 @@ def attendance_data():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
-    with open('data/attendance.txt', 'r') as f:
+    with open('data/rawHours/attendance.txt', 'r') as f:
         data = f.read()
     return Response(data, mimetype='text/plain')
 
@@ -268,7 +255,7 @@ def total_data():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
-    with open('data/hourTotals.txt', 'r') as f:
+    with open('data/totalHours/hourTotals.txt', 'r') as f:
         data = f.read()
     return Response(data, mimetype='text/plain')
 
@@ -278,13 +265,12 @@ def download_file():
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
     subprocess.run([python_executable, 'scripts/sheetExporter.py'])
-    return send_file('data/hourTotals.csv', as_attachment=True)
+    return send_file('data/totalHours/hourTotals.csv', as_attachment=True)
 
 def read_login_credentials():
     with open('data/login.txt', 'r') as file:
         username = file.readline().strip()
         password = file.readline().strip()
-        print (username + " " + password)
     return username, password
 
 @app.route('/volunteer+HASHSTRING', methods=['GET'])
@@ -320,7 +306,6 @@ def loginz():
         username, password = read_login_credentials()
         input_username = request.form.get('username')
         input_password = request.form.get('password')
-        print ("Correct Username is : " + username + " and Correct Password is : " + password)
         if input_username == username and input_password == password:
             session['username'] = username
             next_url = session.pop('next_url', url_for('home'))
@@ -348,7 +333,6 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('loginz'))
 
-# Add this new route to your Flask application
 @app.route('/calculate_hours', methods=['GET'])
 def calculate_hours():
     client_ip = request.remote_addr
@@ -359,7 +343,6 @@ def calculate_hours():
 
 @app.route('/archive', methods=['GET'])
 def archives():
-    # Get the list of .txt files in the Archives folder
     archive_files = [file for file in os.listdir('Archives') if file.endswith('.txt')]
     if 'username' in session and session['username'] == 'admin':
         return render_template('archive.html', archive_files=archive_files, version=version_number)
@@ -371,38 +354,29 @@ def archives():
 
 @app.route('/download/<filename>', methods=['GET'])
 def download_archive(filename):
-    # Construct the full file path by joining the 'Archives' folder and the selected filename
     file_path = os.path.join('Archives', filename)
 
-    # Check if the file exists
     if not os.path.exists(file_path):
         return "File not found"
 
-    # Return the file as an attachment
     return send_from_directory('Archives', filename, as_attachment=True)
 
 
 def archive_attendance_files():
-    # Define the root directory for archives
     archive_root_dir = 'Archives'
-    # Ensure the root directory exists
     if not os.path.exists(archive_root_dir):
         os.makedirs(archive_root_dir)
 
-    # Get the current date and time
     current_date = datetime.datetime.now().strftime('%Y-%m-%d')
     current_time = datetime.datetime.now().strftime('%H-%M-%S')
-    # Define the directory structure
     date_dir = os.path.join(archive_root_dir, f'Archive-{current_date}')
     datetime_dir = os.path.join(date_dir, f'Archive-{current_date}-{current_time}')
 
-    # Ensure the directories exist
     if not os.path.exists(date_dir):
         os.makedirs(date_dir)
     if not os.path.exists(datetime_dir):
         os.makedirs(datetime_dir)
 
-    # Copy attendance files and event_list.txt to the datetime directory
     data_dir = 'data'
     for file in os.listdir(data_dir):
         if file.startswith('attendance') or file == 'event_list.txt':
@@ -420,7 +394,7 @@ def hours():
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
     subprocess.run([python_executable, 'scripts/HoursAdder.py'])
-    with open('data/hourTotals.txt', 'r') as f:
+    with open('data/totalHours/hourTotals.txt', 'r') as f:
         data = f.read()
     return render_template('hours.html', data=data, version=version_number)
 
@@ -428,30 +402,27 @@ def hours():
 def volunteer():
     error = None
     if request.method == 'POST':
-        inputUsername = request.form.get('username')  # Added to handle username input
+        inputUsername = request.form.get('username') 
         inputPassword = request.form.get('password')
         username, password = read_login_credentials()
-        if inputUsername != username or inputPassword != password:  # Modified to check both username and password
+        if inputUsername != username or inputPassword != password: 
             error = "Invalid Credentials. Please try again."
         else:
             return redirect('/volunteer-select' + r_string)
-    return render_template('volunteer.html', error=error, version=version_number)  # Modify to include error handling
+    return render_template('volunteer.html', error=error, version=version_number)  
 
 @app.route('/volunteer-select' + r_string, methods=['GET', 'POST'])
 def volunteer_select():
     if request.method == 'POST':
         event = request.form.get('event')
         eventName = request.form.get('eventName')
-        # Only create a new file if it doesn't already exist
         try:
-            # Open the file in 'x' mode which fails if the file already exists
-            with open(f'data/attendance-{event}.txt', 'x') as f:
-                pass  # File is created, do nothing else
+            with open(f'data/eventRawHours/attendance-{event}.txt', 'x') as f:
+                pass 
         except FileExistsError:
-            pass  # File already exists, do nothing
+            pass 
         return redirect(url_for('volunteer_login', event=event, eventName=eventName))
     
-    # Read events from event_list.txt
     with open('data/event_list.txt', 'r') as file:
         events = file.readlines()
     
@@ -461,29 +432,23 @@ def volunteer_select():
 def volunteer_login():
     message = ''
     eventName = request.args.get('eventName')
-    event = request.args.get('event')  # Get the event value from the query string parameter
+    event = request.args.get('event') 
     if request.method == 'POST':
         id = request.form.get('id')
 
-
-        print("volunteer login" + eventName + " id:" + id)
-        # Use the event-specific attendance file
-        attendance_file = f'data/attendance-{event}.txt'
+        attendance_file = f'data/eventRawHours/attendance-{event}.txt'
         message = attendance.check_status_and_act(id, event)
 
-    return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events)  # Modify to include event name in the template
+    return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events) 
 
 @app.route('/<eventname>-hours' + r_string, methods=['GET'])
 def event_hours(eventname):
-    event_file = f'data/attendance-{eventname}.txt'
-    event_totals_file = f'data/{eventname}-HourTotals.txt'
-    volunteer_totals_file = 'data/VolunteerHourTotals.txt'
+    event_file = f'data/eventRawHours/attendance-{eventname}.txt'
+    event_totals_file = f'data/eventTotalHours/{eventname}-HourTotals.txt'
 
-    # Initialize a dictionary to store the total hours for each volunteer
     event_totals = {}
-    volunteer_totals = {}
 
-    # Read the event-specific attendance file
+
     with open(event_file, 'r') as f:
         lines = f.readlines()
         for line in lines:
@@ -495,73 +460,70 @@ def event_hours(eventname):
             minutes = int(minutes_str) if minutes_str.isdigit() else 0
             total_minutes = hours * 60 + minutes
 
-            # Add the total minutes to the event_totals dictionary
             if id in event_totals:
                 event_totals[id] += total_minutes
             else:
                 event_totals[id] = total_minutes
 
-    # Write the event_totals to the event_totals_file
+    # Get event name, outreach factor, and cap from event_list.txt
+    with open('data/event_list.txt', 'r') as f:
+        for line in f:
+            event_code, event_name, outreach_scale_factor, outreach_hour_cap = line.strip().split(' | ')
+            if event_code == eventname:
+                outreach_scale_factor = float(outreach_scale_factor)
+                outreach_hour_cap = float(outreach_hour_cap)
+                break
+        else:
+            outreach_scale_factor = 1.0
+            outreach_hour_cap = float('inf')  # No cap if not found
+            event_name = eventname # Use event code as name if not found
+
+    event_outreach_hours = {}
     with open(event_totals_file, 'w') as f:
         for id, total_minutes in event_totals.items():
             hours, minutes = divmod(total_minutes, 60)
-            f.write(f"{id} Total Time: {hours} hours {minutes} minutes\n")
+            total_event_hours = total_minutes / 60
+            outreach_hours = min(round(total_event_hours * outreach_scale_factor, 2), outreach_hour_cap)
+            event_outreach_hours[id] = outreach_hours
+            f.write(f"{id} | Total Time: {hours} hours {minutes} minutes | Outreach Hours: {outreach_hours}\n")
 
-    # If the volunteer_totals_file exists, read it and update the volunteer_totals dictionary
-    if os.path.exists(volunteer_totals_file):
-        with open(volunteer_totals_file, 'r') as f:
-            lines = f.readlines()
-            for line in lines:
-                id, _, _, rest = line.split(None, 3)
-                hours_str, _, minutes_str = rest.rsplit(None, 2)
-                hours = int(hours_str) if hours_str.isdigit() else 0
-                minutes = int(minutes_str) if minutes_str.isdigit() else 0
-                total_minutes = hours * 60 + minutes
-
-                # Add the total minutes to the volunteer_totals dictionary
-                if id in volunteer_totals:
-                    volunteer_totals[id] += total_minutes
-                else:
-                    volunteer_totals[id] = total_minutes
-
-    # Update the volunteer_totals dictionary with the event_totals
-    for id, total_minutes in event_totals.items():
-        if id in volunteer_totals:
-            volunteer_totals[id] += total_minutes
+    # Get event name from event_list.txt
+    with open('data/event_list.txt', 'r') as f:
+        for line in f:
+            event_code, event_name, outreach_scale_factor, outreach_hour_cap = line.strip().split(' | ')
+            if event_code == eventname:
+                outreach_scale_factor = float(outreach_scale_factor)
+                break
         else:
-            volunteer_totals[id] = total_minutes
+            outreach_scale_factor = 1.0  
+            event_name = eventname # Use event code as name if not found
 
-    # Write the updated volunteer_totals to the volunteer_totals_file
-    with open(volunteer_totals_file, 'w') as f:
-        for id, total_minutes in volunteer_totals.items():
-            hours, minutes = divmod(total_minutes, 60)
-            f.write(f"{id} Total Time: {hours} hours {minutes} minutes\n")
+    event_outreach_hours = {}
+    for id, total_minutes in event_totals.items():
+        event_outreach_hours[id] = round((total_minutes / 60) * outreach_scale_factor, 2)
+        if event_outreach_hours[id] > float(outreach_hour_cap):
+            event_outreach_hours[id] = float(outreach_hour_cap)
     
     with open(event_totals_file, 'r') as f:
         data = f.read()
 
-    return render_template('event_hours.html', data=data, eventname=eventname, version=version_number)  # Modify to include event name in the template
+    return render_template('event_hours.html', data=data, eventname=eventname, version=version_number, event_outreach_hours=event_outreach_hours, event_name=event_name)
 
 def confirm_reset():
-    # Implement your logic to confirm the reset action here
-    # For example, you can check if the admin is logged in or prompt for a password
-    # Return True if the reset action is confirmed, False otherwise
     return True
 
 def clear_files():
-    # Clear the contents of attendance.txt
-    with open('data/attendance.txt', 'w') as f:
+    with open('data/rawHours/attendance.txt', 'w') as f:
         f.truncate(0)
 
-    # Clear the contents of hourTotals.txt
-    with open('data/hourTotals.txt', 'w') as f:
+    with open('data/totalHours/hourTotals.txt', 'w') as f:
         f.truncate(0)
 
-    with open ('data/attendanceBackup.txt', 'w') as f:
+    with open ('data/rawHours/attendanceBackup.txt', 'w') as f:
         f.truncate(0)
-    # Delete the hourTotals.csv file
-    if os.path.exists('data/hourTotals.csv'):
-        os.remove('data/hourTotals.csv')
+    
+    if os.path.exists('data/totalHours/hourTotals.csv'):
+        os.remove('data/totalHours/hourTotals.csv')
 
 @app.route('/cooldown', methods=['GET'])
 def cooldown():
@@ -579,11 +541,9 @@ def hour_report():
         hour_total = int(request.form.get('hour_total'))
         student_ids = [id.strip() for id in request.form.get('student_ids').split(',')]
 
-        # Initialize a dictionary to store the total hours for each student
         student_totals = {student_id: 0 for student_id in student_ids}
 
-        # Read the archive file
-        with open('data/archive.txt', 'r') as f:
+        with open('data/rawHours/archive.txt', 'r') as f:
             lines = f.readlines()
 
         for line in lines:
@@ -595,17 +555,14 @@ def hour_report():
                 hours = int(hours_str)
                 minutes = int(minutes_str)
 
-                # Check if the student_id is in the list and the date is within the range
                 if student_id in student_ids and start_date <= check_in.date() <= end_date:
                     student_totals[student_id] += hours * 60 + minutes
 
-        # Convert minutes to hours and check if they meet the hour_total
         for student_id in student_totals:
             total_hours = student_totals[student_id] // 60
             student_totals[student_id] = {'hours': total_hours, 'met_reqs': total_hours >= hour_total}
 
-        # Generate the CSV file
-        csv_filename = 'data/hour_report.csv'
+        csv_filename = 'data/hourhour_report.csv'
         with open(csv_filename, 'w', newline='') as csvfile:
             fieldnames = ['Student ID', 'Total Hours', 'Met Requirements']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -657,21 +614,20 @@ def hours_corrector():
         file_selection = request.form.getlist('file_selection')
 
         result = attendance.correct_hours(student_id, date_of_correction, hours_option, file_selection)
-        if isinstance(result, str): # Check if result is an error message
+        if isinstance(result, str): 
             message = result
         else:
             message = "Hours corrected successfully!"
     else:
         message = ""
-    # This part will be executed for GET requests, rendering the form
     attendance_files = [filename for filename in os.listdir("data") if filename.startswith("attendance")]
     return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string, message = message)
 
 @app.route('/check_exclusive_checkin/<student_id>/<date_of_correction>', methods=['POST'])
 def check_exclusive_checkin(student_id, date_of_correction):
     exists = False
-    selected_files = request.json.get('files', [])  # Get selected files from request
-    for filename in selected_files: # Check only in selected files
+    selected_files = request.json.get('files', []) 
+    for filename in selected_files: 
         file_path = os.path.join("data", filename)
         with open(file_path, "r") as f:
             lines = f.readlines()

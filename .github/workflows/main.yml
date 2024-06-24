@@ -11,29 +11,28 @@ jobs:
     - name: Remove __pycache__ directory
       run: sudo rm -rf __pycache__
 
-    # Move attendance and archive data files out of repository to preserve them across deployments
+    # Move data files out of repository to preserve them across deployments
     - name: Move data files out of repository
       run: |
         sudo mkdir -p /tmp/data
-        sudo mv data/attendance.txt data/attendanceBackup.txt data/hourTotals.txt data/hourTotals.csv /tmp/data/ || true
-        sudo mv data/archive.txt /tmp/data/ || true
-        sudo mv Archives/* /tmp/data/ || true
-        # Move all files starting with "attendance-" in the data directory
-        sudo mv data/attendance-*.txt /tmp/data/ || true
+        sudo mv data/rawHours/* /tmp/data/rawHours/ || true
+        sudo mv data/totalHours/* /tmp/data/totalHours/ || true
+        sudo mv data/eventRawHours/* /tmp/data/eventRawHours/ || true
+        sudo mv data/eventTotalHours/* /tmp/data/eventTotalHours/ || true
+        sudo mv data/hourReports/* /tmp/data/hourReports/ || true
+        sudo mv Archives/* /tmp/data/Archives/ || true
 
     - uses: actions/checkout@v2
 
-    # Move attendance and archive data files back into repository after pulling new code
+    # Move data files back into repository after pulling new code
     - name: Move data files back into repository
       run: |
-        sudo mv /tmp/data/attendance.txt data/ || true
-        sudo mv /tmp/data/attendanceBackup.txt data/ || true
-        sudo mv /tmp/data/hourTotals.txt data/ || true
-        sudo mv /tmp/data/hourTotals.csv data/ || true
-        sudo mv /tmp/data/archive.txt data/ || true
-        sudo mv /tmp/data/* Archives/ || true
-        # Move all "attendance-" files back to the data directory
-        sudo mv /tmp/data/attendance-*.txt data/ || true
+        sudo mv /tmp/data/rawHours/* data/rawHours/ || true
+        sudo mv /tmp/data/totalHours/* data/totalHours/ || true
+        sudo mv /tmp/data/eventRawHours/* data/eventRawHours/ || true
+        sudo mv /tmp/data/eventTotalHours/* data/eventTotalHours/ || true
+        sudo mv /tmp/data/hourReports/* data/hourReports/ || true
+        sudo mv /tmp/data/Archives/* Archives/ || true
 
     - name: Stop Gunicorn server and remove screen
       run: |
@@ -42,7 +41,4 @@ jobs:
     - name: Start Gunicorn server in a new screen
       run: |
         cd $GITHUB_WORKSPACE
-        cd templates
-        cat admin.html
-        cd ..
         sudo screen -dmS gunicorn sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 --preload app:app
