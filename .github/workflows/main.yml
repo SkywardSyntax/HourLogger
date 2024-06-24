@@ -40,13 +40,16 @@ jobs:
         sudo mv /tmp/data/hourReports/* data/hourReports/ || true
         sudo mv /tmp/data/Archives/* Archives/ || true
 
-    - name: Stop Gunicorn server and remove screen
+    - name: Stop Gunicorn server and screen session
       run: |
-        screen -X -S gunicorn quit || true
+        # Send SIGTERM to all processes in the screen session
+        sudo screen -S gunicorn -X stuff $'\003'  # Ctrl+C
+        sudo screen -S gunicorn -X stuff $'\003'  # Ctrl+C (again to ensure termination)
+        sleep 5  # Wait for processes to terminate gracefully
+        # Forcefully kill the screen session if it still exists
+        sudo screen -XS gunicorn quit || true 
 
     - name: Start Gunicorn server in a new screen
       run: |
         cd $GITHUB_WORKSPACE
-        screen -dmS gunicorn sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 --preload app:app
-
-        
+        sudo screen -dmS gunicorn sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 --preload app:app
