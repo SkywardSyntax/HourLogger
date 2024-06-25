@@ -2,7 +2,6 @@ import subprocess
 from flask import Flask, request, redirect, session, url_for, render_template
 from flask import Flask, request, redirect, url_for, render_template, Response
 from flask import send_file
-from scripts.HoursAdder import calculate_total_time
 import datetime
 import re
 import random
@@ -34,13 +33,10 @@ id_validation_enabled = False
 
 class Attendance:
     def __init__(self):
-        with open('data/rawHours/attendanceBackup.txt', 'r') as backup_file:
-            backup_data = backup_file.read()
-
-        with open('data/rawHours/attendance.txt', 'w') as attendance_file:
-            attendance_file.write(backup_data)
-
         self.records = {}
+        attendance_file = 'data/rawHours/attendance.txt' 
+        if not os.path.exists(attendance_file):
+            open(attendance_file, 'w').close() 
 
     def check_in_out(self, id, event=None, action=None):
         global recent_events
@@ -81,7 +77,6 @@ class Attendance:
 
         recent_events.append(f"{id} - {action_str}")
         recent_events = recent_events[-3:]
-        subprocess.run([python_executable, 'scripts/attendanceBackup.py'])
         return f"{action_str}! Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes" if action == "check_out" else f"{action_str}!"
 
     def check_status_and_act(self, id, event=None):
@@ -388,16 +383,6 @@ def archive_all():
     archive_attendance_files()
     return redirect(url_for('admin'))
 
-@app.route('/hours', methods=['GET'])
-def hours():
-    client_ip = request.remote_addr
-    if check_client_cooldown(client_ip):
-        return redirect(url_for('cooldown'))
-    subprocess.run([python_executable, 'scripts/HoursAdder.py'])
-    with open('data/totalHours/hourTotals.txt', 'r') as f:
-        data = f.read()
-    return render_template('hours.html', data=data, version=version_number)
-
 @app.route('/volunteer' + r_string, methods=['GET', 'POST'])
 def volunteer():
     error = None
@@ -504,9 +489,6 @@ def clear_files():
         f.truncate(0)
 
     with open('data/totalHours/hourTotals.txt', 'w') as f:
-        f.truncate(0)
-
-    with open ('data/rawHours/attendanceBackup.txt', 'w') as f:
         f.truncate(0)
     
     if os.path.exists('data/totalHours/hourTotals.csv'):
@@ -638,6 +620,95 @@ def volunteer_hours():
     return render_template('volunteer_hours.html', events=events, version=version_number)
 
     return json.dumps({'exists': exists})
+
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort(left) + middle + quicksort(right)
+    
+@app.route('/hours', methods=['GET'])
+def calculate_total_time():
+    totals = {}
+    suspicious_activity = []
+    incomplete_entries = []
+    complete_entries = []  # List to store complete entries
+
+    # Read existing totals from hourTotals.txt
+    if os.path.exists('data/totalHours/hourTotals.txt'):
+        with open('data/totalHours/hourTotals.txt', 'r') as f:
+            for line in f:
+                match = re.match(r'ID: (\d+), Total time: (\d+) hours (\d+) minutes', line.strip())
+                if match:
+                    id, hours, minutes = match.groups()
+                    totals[id] = {'hours': int(hours), 'minutes': int(minutes)}
+
+    # Add new totals from attendance.txt
+    if os.path.exists('data/rawHours/attendance.txt'):
+        with open('data/rawHours/attendance.txt', 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                line = line.strip()
+                match = re.match(r'(\d+) Checked In at .+ and Checked Out at .+, Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
+                if match:
+                    id, hours, minutes = match.groups()
+                    hours = int(hours)
+                    minutes = int(minutes)
+                    if hours >= 10:
+                        suspicious_activity.append(line)
+                    else:
+                        if id not in totals:
+                            totals[id] = {'hours': 0, 'minutes': 0}
+                        totals[id]['hours'] += hours
+                        totals[id]['minutes'] += minutes
+                        complete_entries.append(line)  # Add complete entry to the list
+                else:
+                    incomplete_entries.append(line)
+
+    # Convert minutes to hours
+    for id in totals:
+        hours, minutes = divmod(totals[id]['minutes'], 60)
+        totals[id]['hours'] += hours
+        totals[id]['minutes'] = minutes
+
+    # Write to hourTotals.txt 
+    with open('data/totalHours/hourTotals.txt', 'w') as f:
+        for id, time in totals.items():
+            f.write(f"ID: {id}, Total time: {time['hours']} hours {time['minutes']} minutes\n")
+
+    # Append complete entries to archive.txt
+    with open('data/rawHours/archive.txt', 'a') as archive:
+        for entry in complete_entries:
+            archive.write(entry + '\n')
+
+    # Sort archive.txt
+    with open('data/rawHours/archive.txt', 'r') as archive:
+        lines = archive.readlines()
+        sorted_lines = quicksort(lines)
+    with open('data/rawHours/archive.txt', 'w') as archive:
+        archive.writelines(sorted_lines)
+
+    # Clear attendance.txt
+    open('data/rawHours/attendance.txt', 'w').close()
+
+    # Write incomplete entries to attendance.txt
+    with open('data/rawHours/attendance.txt', 'w') as f:
+        for line in incomplete_entries:
+            f.write(line + '\n')
+
+    # Write suspicious activity to file
+    with open('data/suspicious_activity.txt', 'w') as f:
+        for line in suspicious_activity:
+            f.write(line + '\n')
+
+    with open('data/totalHours/hourTotals.txt', 'r') as f:
+        data = f.read()
+    return render_template('hours.html', data=data, version=version_number)
+
+
 
 def main():
     app.run(debug=True)
