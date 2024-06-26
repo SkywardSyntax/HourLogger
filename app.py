@@ -29,7 +29,9 @@ with open('data/version.txt', 'r') as version_file:
 
 recent_events = ["", "", ""]
 
-id_validation_enabled = False
+# Read ID validation status from file
+with open('data/id_validation.txt', 'r') as file:
+    id_validation_enabled = file.read().strip().lower() == 'true'
 
 class Attendance:
     def __init__(self):
@@ -545,7 +547,9 @@ def hour_report():
         return render_template('hour_report.html', version=version_number, r_string = r_string)
 
 def validate_student_id(student_id):
-    global id_validation_enabled
+    # Read ID validation status from file
+    with open('data/id_validation.txt', 'r') as file:
+        id_validation_enabled = file.read().strip().lower() == 'true'
     if not id_validation_enabled and student_id.isdigit() and len(student_id) == 6:
         return True
     
@@ -571,6 +575,9 @@ def save_valid_students():
 def toggle_id_validation():
     global id_validation_enabled
     id_validation_enabled = not id_validation_enabled
+    # Update id_validation.txt with the new status
+    with open('data/id_validation.txt', 'w') as file:
+        file.write('true' if id_validation_enabled else 'false')
     return json.dumps({'id_validation_enabled': id_validation_enabled})
 
 @app.route('/WestwoodRobotics/' + random_string + '/hour_corrector', methods=['GET', 'POST'])
