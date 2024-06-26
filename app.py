@@ -546,9 +546,16 @@ def hour_report():
 
 def validate_student_id(student_id):
     global id_validation_enabled
+    # Read ID validation state from file
+    try:
+        with open('data/id_validation_state.txt', 'r') as f:
+            id_validation_enabled = f.read().strip().lower() == 'true'
+    except FileNotFoundError:
+        id_validation_enabled = False 
+
     if not id_validation_enabled and student_id.isdigit() and len(student_id) == 6:
         return True
-    
+
     with open('data/valid_students.txt', 'r') as file:
         valid_ids = file.readlines()
     valid_ids = [line.strip().split(' | ')[0] for line in valid_ids]
@@ -571,6 +578,10 @@ def save_valid_students():
 def toggle_id_validation():
     global id_validation_enabled
     id_validation_enabled = not id_validation_enabled
+
+    with open('data/id_validation_state.txt', 'w') as f:
+        f.write(str(id_validation_enabled)) # Write True/False as string
+    
     return json.dumps({'id_validation_enabled': id_validation_enabled})
 
 @app.route('/WestwoodRobotics/' + random_string + '/hour_corrector', methods=['GET', 'POST'])
