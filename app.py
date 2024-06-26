@@ -286,7 +286,8 @@ def home():
 
 @app.route('/WestwoodRoboticsAdmin', methods=['GET'])
 def admin():
-    global id_validation_enabled
+    with open('data/id_validation_state.txt', 'r') as f:
+        id_validation_enabled = f.read().strip().lower() == 'true'
     global random_string
     if 'username' in session and session['username'] == 'admin':
         return render_template('admin.html', version=version_number, recent_events=recent_events, id_validation_enabled=id_validation_enabled, r_string=r_string, random_string = random_string)
