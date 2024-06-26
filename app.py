@@ -577,7 +577,10 @@ def save_valid_students():
 
 @app.route('/toggle_id_validation', methods=['POST'])
 def toggle_id_validation():
-    global id_validation_enabled
+    
+    with open('data/id_validation_state.txt', 'r') as f:
+        id_validation_enabled = f.read().strip().lower() == 'true'
+        
     id_validation_enabled = not id_validation_enabled
 
     with open('data/id_validation_state.txt', 'w') as f:
