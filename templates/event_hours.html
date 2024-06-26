@@ -6,48 +6,46 @@
         body {
             font-family: 'Roboto', sans-serif;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Arrange items vertically */
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #121212;
+            background-color: #121212; /* Dark mode background */
         }
 
-        .flex-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-start;
-            width: 80%;
-            margin-bottom: 20px;
-            color: #E0E0E0;
-        }
-
-        .column {
-            flex: 1;
-            padding: 10px;
-            background-color: #333333;
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #333333; /* Darker container background */
             border-radius: 15px;
-            margin: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            width: 80%; /* Occupy 80% of the viewport width */
+            margin-bottom: 20px; /* Add space between container and buttons */
+            color: #E0E0E0; /* Light text for better readability */
         }
 
-        .column:hover {
-            transform: translateY(-10px);
+        h1 {
+            color: #E0E0E0; /* Light text color */
         }
 
-        .column h2 {
-            color: #E0E0E0;
+        pre {
+            display: none; /* Hide the pre element */
         }
 
-        .column ul {
-            list-style-type: none;
-            padding: 0;
+        #searchInput {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 300px;
+            transition: border .3s;
+            background-color: #2d2d2d; /* Darker input background */
+            color: #E0E0E0; /* Light text color for input */
         }
 
-        .column ul li {
-            padding: 5px;
-            border-bottom: 1px solid #ddd;
+        #searchInput:focus {
+            border-color: #007BFF;
+            outline: none;
         }
 
         /* Style for version display */
@@ -63,7 +61,7 @@
 
         /* Go Back to Home button */
         .back-to-home {
-            background-color: #4CAF50;
+            background-color: #4CAF50; /* Volunteer login button color */
             color: white;
             padding: 10px 20px;
             text-align: center;
@@ -77,41 +75,64 @@
             bottom: 20px;
             right: 20px;
         }
+
+        table {
+            margin: 0 auto 20px auto; /* Center the table horizontally and add bottom margin*/
+            width: 80%; 
+            border-collapse: collapse;
+            color: #E0E0E0; /* Light text color for table */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            background-color: #2d2d2d; /* Darker background for table cells */
+            color: #E0E0E0; /* Light text color for table cells */
+        }
+
+        th {
+            background-color: #333333; /* Darker background for table header */
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="flex-container">
-        <div class="column id-column">
-            <h2>ID Number</h2>
-            <ul>
-                {% for id in event_outreach_hours.keys() %}
-                <li>{{ id }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="column logged-time-column">
-            <h2>Total Logged Time</h2>
-            <ul>
-                {% for time in event_outreach_hours.values() %}
-                <li>{{ time.split(' | ')[1] }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="column outreach-hours-column">
-            <h2>Outreach Hours Awarded</h2>
-            <ul>
-                {% for hours in event_outreach_hours.values() %}
-                <li>{{ hours.split(' | ')[2] }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+    <div class="container">
+        <h1>Total Hours for {{ event_name }}</h1> 
+        <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}">        
+        <pre id="data">{{ data }}</pre> 
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Number</th>
+                    <th>Total Logged Time</th>
+                    <th>Outreach Hours Awarded</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for line in data.splitlines() %}
+                {% if line %}
+                    {% set parts = line.split(" | ") %}
+                    {% set student_id = parts[0] %}
+                    {% set time_str = parts[1] %} 
+                    {% set outreach_hours_str = parts[2] %} 
+                    <tr>
+                        <td>{{ student_id }}</td>
+                        <td>{{ time_str }}</td>
+                        <td>{{ outreach_hours_str }}</td> 
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     <div class="version-display">{{ version }}</div>
     <a href="/" class="back-to-home">Go Back to Home</a>
 
-        <script>
+    <script>
         // Pass event_outreach_hours as a JavaScript object
         var eventOutreachHours = JSON.parse('{{ event_outreach_hours | tojson | safe }}');
 
