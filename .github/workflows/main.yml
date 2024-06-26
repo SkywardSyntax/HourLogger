@@ -21,12 +21,14 @@ jobs:
         sudo mkdir -p /tmp/data/eventTotalHours
         sudo mkdir -p /tmp/data/hourReports
         sudo mkdir -p /tmp/data/Archives
+
         sudo mv data/rawHours/* /tmp/data/rawHours/ || true
         sudo mv data/totalHours/* /tmp/data/totalHours/ || true
         sudo mv data/eventRawHours/* /tmp/data/eventRawHours/ || true
         sudo mv data/eventTotalHours/* /tmp/data/eventTotalHours/ || true
         sudo mv data/hourReports/* /tmp/data/hourReports/ || true
         sudo mv Archives/* /tmp/data/Archives/ || true
+        sudo mv data/id_validation_state.txt /tmp/data/ || true
 
     - uses: actions/checkout@v2
 
@@ -39,6 +41,8 @@ jobs:
         sudo mv /tmp/data/eventTotalHours/* data/eventTotalHours/ || true
         sudo mv /tmp/data/hourReports/* data/hourReports/ || true
         sudo mv /tmp/data/Archives/* Archives/ || true
+        sudo rm -rf data/id_validation_state.txt || true
+        sudo mv /tmp/data/id_validation_state.txt data/ || true
 
     - name: Stop Gunicorn server and screen session
       run: |
@@ -52,4 +56,4 @@ jobs:
     - name: Start Gunicorn server in a new screen
       run: |
         cd $GITHUB_WORKSPACE
-        sudo screen -dmS gunicorn sudo gunicorn -w 2 -b 0.0.0.0:80 --timeout 6000 --preload app:app
+        sudo screen -dmS gunicorn sudo gunicorn -w 1 -b 0.0.0.0:80 --timeout 6000 --preload app:app
