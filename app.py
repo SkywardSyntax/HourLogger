@@ -615,11 +615,12 @@ def hours_corrector():
     return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string, message = message)
 
 @app.route('/check_exclusive_checkin/<student_id>/<date_of_correction>', methods=['POST'])
+@app.route('/check_exclusive_checkin/<student_id>/<date_of_correction>', methods=['POST'])
 def check_exclusive_checkin(student_id, date_of_correction):
     exists = False
     selected_files = request.json.get('files', []) 
     for filename in selected_files: 
-        file_path = os.path.join("data", filename)
+        file_path = filename  # Use filename directly (without os.path.join)
         with open(file_path, "r") as f:
             lines = f.readlines()
             for line in lines:
@@ -628,6 +629,8 @@ def check_exclusive_checkin(student_id, date_of_correction):
                     break 
         if exists:
             break
+
+    return json.dumps({'exists': exists})
 
 @app.route('/volunteer-hours', methods=['GET', 'POST'])
 def volunteer_hours():
