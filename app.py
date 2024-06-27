@@ -604,7 +604,14 @@ def hours_corrector():
             message = "Hours corrected successfully!"
     else:
         message = ""
-    attendance_files = [filename for filename in os.listdir("data") if filename.startswith("attendance")]
+        # Recursively get all attendance files
+        attendance_files = []
+        for root, dirs, files in os.walk("data"):
+            for file in files:
+                if file.startswith("attendance"):
+                    attendance_files.append(os.path.join(root, file)) 
+
+
     return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string, message = message)
 
 @app.route('/check_exclusive_checkin/<student_id>/<date_of_correction>', methods=['POST'])

@@ -106,9 +106,11 @@
             <input type="date" id="date_of_correction" name="date_of_correction" required disabled>
 
             <div class="checkbox-group">
-                <label><input type="checkbox" name="file_selection" value="archive.txt">Archive.txt</label>
+                <label><input type="checkbox" name="file_selection" value="data/rawHours/archive.txt">archive.txt</label> 
                 {% for file in attendance_files %}
-                    <label><input type="checkbox" name="file_selection" value="{{ file }}">{{ file }}</label>
+                    <label>
+                        <input type="checkbox" name="file_selection" value="{{ file }}">
+                        {{ file.split('/')[-1] }}  </label> 
                 {% endfor %}
             </div>
 
