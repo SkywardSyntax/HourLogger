@@ -157,7 +157,7 @@ class Attendance:
 
     def add_check_in_out(self, student_id, date_of_correction, check_in_time, check_out_time, file_selection):
         for filename in file_selection:
-            file_path = os.path.join("data", filename)
+            file_path = filename  # Use filename directly (without os.path.join)
             check_in_datetime = datetime.datetime.strptime(f"{date_of_correction} {check_in_time}", "%Y-%m-%d %H:%M")
             check_out_datetime = datetime.datetime.strptime(f"{date_of_correction} {check_out_time}", "%Y-%m-%d %H:%M")
 
@@ -591,6 +591,7 @@ def toggle_id_validation():
 @app.route('/WestwoodRobotics/' + random_string + '/hour_corrector', methods=['GET', 'POST'])
 def hours_corrector():
     message = ""
+    attendance_files = []  # Initialize attendance_files 
     if request.method == 'POST':
         student_id = request.form.get('student_id')
         date_of_correction = request.form.get('date_of_correction')
@@ -602,19 +603,23 @@ def hours_corrector():
             message = result
         else:
             message = "Hours corrected successfully!"
-    else:
-        message = ""
-        # Recursively get all attendance files
-        attendance_files = []
+
+        # *** Update attendance_files after correction ***
         for root, dirs, files in os.walk("data"):
             for file in files:
                 if file.startswith("attendance"):
                     attendance_files.append(os.path.join(root, file)) 
 
+    else:  # GET request or other methods
+        message = ""
+        # Recursively get all attendance files
+        for root, dirs, files in os.walk("data"):
+            for file in files:
+                if file.startswith("attendance"):
+                    attendance_files.append(os.path.join(root, file)) 
 
-    return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string, message = message)
+    return render_template('hour_corrector.html', attendance_files=attendance_files, random_string=random_string, message=message)
 
-@app.route('/check_exclusive_checkin/<student_id>/<date_of_correction>', methods=['POST'])
 @app.route('/check_exclusive_checkin/<student_id>/<date_of_correction>', methods=['POST'])
 def check_exclusive_checkin(student_id, date_of_correction):
     exists = False
