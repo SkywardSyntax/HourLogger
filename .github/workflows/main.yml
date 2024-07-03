@@ -5,10 +5,12 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: self-hosted
+  compile_runtime_check:
+    runs-on: ubuntu-latest
+
     steps:
-    
+    - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -29,6 +31,10 @@ jobs:
               exit $exit_code
             fi
 
+  build:
+    needs: compile_runtime_check
+    runs-on: self-hosted
+    steps:
     - name: Remove __pycache__ directory
       run: sudo rm -rf __pycache__
 
