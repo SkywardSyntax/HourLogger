@@ -437,7 +437,7 @@ def event_hours(eventname):
     # Read and sort entries from the event attendance file
     with open(event_file, 'r') as f:
         entries = f.readlines()
-    
+
     # Sort entries chronologically based on check-in time
     entries = sorted(entries, key=lambda x: datetime.datetime.strptime(re.search(r'Checked In at (.+?) and', x).group(1), '%Y-%m-%d %H:%M:%S.%f'))
 
@@ -503,7 +503,11 @@ def event_hours(eventname):
 
                             # Accumulate time for the same day
                             if date in student_daily_data[student_id]:
-                                current_hours, current_minutes = map(int, student_daily_data[student_id][date]['logged_time'].split(' hours ')[0].split(' minutes'))
+                                time_parts = student_daily_data[student_id][date]['logged_time'].split(' hours ')
+                                current_hours = int(time_parts[0])
+                                # Extract minutes only if they exist
+                                current_minutes = int(time_parts[1].split(' minutes')[0]) if ' minutes' in time_parts[1] else 0  
+                                
                                 total_minutes = (current_hours * 60 + current_minutes) + (int(hours) * 60 + int(minutes))
                                 hours, minutes = divmod(total_minutes, 60)
                                 student_daily_data[student_id][date]['logged_time'] = f"{hours} hours {minutes} minutes"
@@ -538,7 +542,7 @@ def event_hours(eventname):
     return render_template('event_hours.html', data=data, eventname=eventname, version=version_number, 
                            event_outreach_hours=event_outreach_hours, event_name=event_name,
                            student_daily_data=student_daily_data)  # Pass student_daily_data to the template
-                           
+
 def confirm_reset():
     return True
 
