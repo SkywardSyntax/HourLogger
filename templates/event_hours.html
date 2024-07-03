@@ -6,30 +6,30 @@
         body {
             font-family: 'Roboto', sans-serif;
             display: flex;
-            flex-direction: column; /* Arrange items vertically */
+            flex-direction: column;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #121212; /* Dark mode background */
+            background-color: #121212; 
         }
 
         .container {
             text-align: center;
             padding: 20px;
-            background-color: #333333; /* Darker container background */
+            background-color: #333333; 
             border-radius: 15px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            width: 80%; /* Occupy 80% of the viewport width */
-            margin-bottom: 20px; /* Add space between container and buttons */
-            color: #E0E0E0; /* Light text for better readability */
+            width: 80%;
+            margin-bottom: 20px; 
+            color: #E0E0E0; 
         }
 
         h1 {
-            color: #E0E0E0; /* Light text color */
+            color: #E0E0E0; 
         }
 
         pre {
-            display: none; /* Hide the pre element */
+            display: none;
         }
 
         #searchInput {
@@ -39,8 +39,8 @@
             border: 1px solid #ccc;
             width: 300px;
             transition: border .3s;
-            background-color: #2d2d2d; /* Darker input background */
-            color: #E0E0E0; /* Light text color for input */
+            background-color: #2d2d2d;
+            color: #E0E0E0; 
         }
 
         #searchInput:focus {
@@ -48,7 +48,6 @@
             outline: none;
         }
 
-        /* Style for version display */
         .version-display {
             position: fixed;
             bottom: 0;
@@ -59,9 +58,8 @@
             font-size: 12px;
         }
 
-        /* Go Back to Home button */
         .back-to-home {
-            background-color: #4CAF50; /* Volunteer login button color */
+            background-color: #4CAF50;
             color: white;
             padding: 10px 20px;
             text-align: center;
@@ -77,22 +75,50 @@
         }
 
         table {
-            margin: 0 auto 20px auto; /* Center the table horizontally and add bottom margin*/
+            margin: 0 auto 20px auto;
             width: 80%; 
             border-collapse: collapse;
-            color: #E0E0E0; /* Light text color for table */
+            color: #E0E0E0; 
         }
 
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
-            background-color: #2d2d2d; /* Darker background for table cells */
-            color: #E0E0E0; /* Light text color for table cells */
+            background-color: #2d2d2d; 
+            color: #E0E0E0; 
         }
 
         th {
-            background-color: #333333; /* Darker background for table header */
+            background-color: #333333; 
+        }
+
+        .popup {
+            display: none; 
+            position: fixed; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+            background-color: #333333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5); 
+            z-index: 100; 
+            color: #E0E0E0;
+        }
+
+        .popup h2 {
+            margin-top: 0;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -118,8 +144,8 @@
                     {% set student_id = parts[0] %}
                     {% set time_str = parts[1] %} 
                     {% set outreach_hours_str = parts[2] %} 
-                    <tr>
-                        <td>{{ student_id }}</td>
+                    <tr data-student-id="{{ student_id }}">
+                        <td><a href="#" class="student-link">{{ student_id }}</a></td>
                         <td>{{ time_str }}</td>
                         <td>{{ outreach_hours_str }}</td> 
                     </tr>
@@ -129,17 +155,45 @@
         </table>
     </div>
 
+    <!-- Popup for detailed hours -->
+    <div id="studentDetailsPopup" class="popup">
+        <span class="close-button" onclick="closePopup()">×</span>
+        <h2 id="popupStudentID">Student ID: </h2>
+        <table id="dailyBreakdownTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Logged Time</th>
+                    <th>Outreach Hours</th> 
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be populated here using JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
     <div class="version-display">{{ version }}</div>
     <a href="/" class="back-to-home">Go Back to Home</a>
 
     <script>
-        // Pass event_outreach_hours as a JavaScript object
         var eventOutreachHours = JSON.parse('{{ event_outreach_hours | tojson | safe }}');
+        var studentDailyData = JSON.parse('{{ student_daily_data | tojson | safe }}');
 
         window.onload = function() {
             var originalData = document.getElementById('data').textContent;
             var searchInputField = document.getElementById('searchInput');
-            
+
+            // Event listener for student links
+            var studentLinks = document.querySelectorAll('.student-link');
+            studentLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default link behavior
+                    var studentId = this.parentElement.parentElement.dataset.studentId;
+                    showPopup(studentId);
+                });
+            });
+
             searchInputField.addEventListener('input', function(event) {
                 var searchInput = event.target.value;
                 var filteredData = originalData.split('\n').filter(function(line) {
@@ -153,20 +207,56 @@
                     if (line) {
                         var parts = line.split(" | ");
                         var student_id = parts[0];
-                        var time_str = parts[1]; // Get only the time string
+                        var time_str = parts[1]; 
                         var outreach_hours = eventOutreachHours[student_id] || "0 hours 0 minutes"; 
 
                         var row = document.createElement('tr');
+                        row.dataset.studentId = student_id; // Add data attribute for student ID
                         row.innerHTML = `
-                            <td>${student_id}</td>
+                            <td><a href="#" class="student-link">${student_id}</a></td> 
                             <td>${time_str}</td>
                             <td>${outreach_hours}</td>
                         `;
                         tableBody.appendChild(row);
                     }
                 });
+
+                // Reattach event listeners to the new student links
+                studentLinks = document.querySelectorAll('.student-link');
+                studentLinks.forEach(link => {
+                    link.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        var studentId = this.parentElement.parentElement.dataset.studentId;
+                        showPopup(studentId);
+                    });
+                });
             });
         };
+
+        function showPopup(studentId) {
+            document.getElementById('popupStudentID').innerText = "Student ID: " + studentId;
+
+            var dailyBreakdown = studentDailyData[studentId] || []; 
+            var tableBody = document.querySelector('#dailyBreakdownTable tbody');
+            tableBody.innerHTML = ''; // Clear existing data
+
+            dailyBreakdown.forEach(entry => {
+                var row = tableBody.insertRow();
+                var dateCell = row.insertCell();
+                var loggedTimeCell = row.insertCell();
+                var outreachHoursCell = row.insertCell();
+
+                dateCell.textContent = entry.date;
+                loggedTimeCell.textContent = entry.logged_time;
+                outreachHoursCell.textContent = entry.outreach_hours; 
+            });
+
+            document.getElementById('studentDetailsPopup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('studentDetailsPopup').style.display = 'none';
+        }
     </script>
 </body>
 </html>
