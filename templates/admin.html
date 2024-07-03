@@ -1,93 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="icon" href="{{ url_for('static', filename='logo.ico') }}">
-    <title>Admin Page</title>
+    <title>Event Hours</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #000000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            margin: 0 auto; /* Center the container horizontally */
-            padding: 20px;
-            box-sizing: border-box; /* Include padding in the width calculation */
-        }
-
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            font-family: 'Roboto', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121212; 
         }
 
-        label {
-            font-weight: bold;
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #333333; 
+            border-radius: 15px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            margin-bottom: 20px; 
+            color: #E0E0E0; 
         }
 
-        .input-section {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            margin-top: 20px;
+        h1 {
+            color: #E0E0E0; 
         }
 
-        .input-section input[type="button"] {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 10px;
-            border: none;
+        pre {
+            display: none;
+        }
+
+        #searchInput {
+            padding: 10px;
             font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 7.5px;
-            margin-left: 7.5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 300px;
+            transition: border .3s;
+            background-color: #2d2d2d;
+            color: #E0E0E0; 
         }
 
-        .input-section input[type="buttonADMIN"] {
-            background-color: #af4c4c;
-            color: white;
-            width: 50px;
-            padding: 10px 10px;
-            border: none;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 7.5px;
-            margin-left: 7.5px;
+        #searchInput:focus {
+            border-color: #007BFF;
+            outline: none;
         }
 
-        .input-section input[type="buttonRESETALL"] {
-            background-color: #920000;
-            color: white;
-            width: 65px;
-            padding: 10px 10px;
-            border: none;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 7.5px;
-            margin-left: 7.5px;
-        }
-
-        #message {
-            margin-top: 20px;
-            font-size: 18px;
-            color: rgb(53, 53, 53);
-            font-weight: bold;
-        }
-
-        /* Style for version display */
         .version-display {
             position: fixed;
             bottom: 0;
@@ -98,50 +58,8 @@
             font-size: 12px;
         }
 
-        /* Style for displaying error message */
-        .error-message {
-            color: red;
-            margin-top: 10px;
-        }
-
-        /* Popup styling */
-        .popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .popup-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
-            width: 80%;
-            max-width: 600px;
-        }
-
-        .popup-content textarea {
-            width: 100%;
-            height: 300px;
-            margin-bottom: 20px;
-        }
-
-        .popup-content input[type="button"] {
-            width: auto;
-            margin: 0 10px;
-        }
-        /* Add a 'Go Back to Home' button at the bottom of the page */
         .back-to-home {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #4CAF50; /* Volunteer login button color */
+            background-color: #4CAF50;
             color: white;
             padding: 10px 20px;
             text-align: center;
@@ -151,159 +69,193 @@
             cursor: pointer;
             border-radius: 12px;
             text-decoration: none;
-        }
-        /* Toggle switch container */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
         }
 
-        /* Hide default HTML checkbox */
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        table {
+            margin: 0 auto 20px auto;
+            width: 80%; 
+            border-collapse: collapse;
+            color: #E0E0E0; 
         }
 
-        /* The slider */
-        .slider {
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            background-color: #2d2d2d; 
+            color: #E0E0E0; 
+        }
+
+        th {
+            background-color: #333333; 
+        }
+
+        .popup {
+            display: none; 
+            position: fixed; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+            background-color: #333333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5); 
+            z-index: 100; 
+            color: #E0E0E0;
+        }
+
+        .popup h2 {
+            margin-top: 0;
+        }
+
+        .close-button {
             position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:focus + .slider {
-            box-shadow: 0 0 1px #2196F3;
-        }
-
-        input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
-
-        /* Rounded sliders */
-        .slider.round {
-            border-radius: 34px;
-        }
-
-        .slider.round:before {
-            border-radius: 50%;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <form>
-            <h1>Welcome, Director Of Digital Operations!</h1>
-            <label class="switch">
-                <input type="checkbox" id="toggleValidation" {{ 'checked' if id_validation_enabled else '' }}>
-                <span class="slider round"></span>
-            </label>
-            <span>ID Validation: <span id="validationStatus">{{ 'ON' if id_validation_enabled else 'OFF' }}</span></span>
-            <div class="input-section">
-                <input type="button" value="View Raw Hours" onclick="location.href='/raw_hours'">
-                <input type="button" value="Calculate Total Hours" onclick="calculateHours()">
-                <input type="button" value="Show Total Hours" onclick="location.href='/hours'">
-                <input type="button" value="Download CSV" onclick="location.href='/download_csv'">
-                <input type="button" value="Run a Report" onclick="location.href='/hour_report{{ r_string }}'">
-                <input type="button" value="Archive File System" onclick="confirmArchive()">
-                <input type="button" value="Edit Valid Students" onclick="showPopup()">
-                <input type="button" value="Hours Correction" onclick="location.href='/WestwoodRobotics/{{ random_string }}/hour_corrector'">
-                <input type="buttonADMIN" value="Logout" onclick="location.href='/logout'">
-            </div>
-        </form>
+        <h1>Total Hours for {{ event_name }}</h1> 
+        <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}">        
+        <pre id="data">{{ data }}</pre> 
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Number</th>
+                    <th>Total Logged Time</th>
+                    <th>Outreach Hours Awarded</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for line in data.splitlines() %}
+                {% if line %}
+                    {% set parts = line.split(" | ") %}
+                    {% set student_id = parts[0] %}
+                    {% set time_str = parts[1] %} 
+                    {% set outreach_hours_str = parts[2] %} 
+                    <tr data-student-id="{{ student_id }}">
+                        <td><a href="#" class="student-link">{{ student_id }}</a></td>
+                        <td>{{ time_str }}</td>
+                        <td>{{ outreach_hours_str }}</td> 
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="popup-overlay" id="editPopup">
-        <div class="popup-content">
-            <textarea id="validStudentsContent"></textarea>
-            <input type="button" value="Save Changes" onclick="saveChanges()">
-            <input type="button" value="Cancel" onclick="hidePopup()">
-        </div>
+
+    <!-- Popup for detailed hours -->
+    <div id="studentDetailsPopup" class="popup">
+        <span class="close-button" onclick="closePopup()">×</span>
+        <h2 id="popupStudentID">Student ID: </h2>
+        <table id="dailyBreakdownTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Logged Time</th>
+                    <th>Outreach Hours</th> 
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be populated here using JavaScript -->
+            </tbody>
+        </table>
     </div>
+
     <div class="version-display">{{ version }}</div>
     <a href="/" class="back-to-home">Go Back to Home</a>
+
     <script>
-        document.getElementById('toggleValidation').addEventListener('change', function() {
-            var validationStatus = document.getElementById('validationStatus');
-            var isChecked = this.checked;
-            fetch('/toggle_id_validation', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id_validation_enabled: isChecked }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                validationStatus.textContent = data.id_validation_enabled ? 'ON' : 'OFF';
-                alert('ID Validation is now ' + (data.id_validation_enabled ? 'ON' : 'OFF'));
+        var eventOutreachHours = JSON.parse('{{ event_outreach_hours | tojson | safe }}');
+        var studentDailyData = JSON.parse('{{ student_daily_data | tojson | safe }}');
+
+        window.onload = function() {
+            var originalData = document.getElementById('data').textContent;
+            var searchInputField = document.getElementById('searchInput');
+
+            // Event listener for student links
+            var studentLinks = document.querySelectorAll('.student-link');
+            studentLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default link behavior
+                    var studentId = this.parentElement.parentElement.dataset.studentId;
+                    showPopup(studentId);
+                });
             });
-        });
 
-        function calculateHours() {
-            location.href='/calculate_hours';
-            alert('Total hours calculated successfully!');
-        }
+            searchInputField.addEventListener('input', function(event) {
+                var searchInput = event.target.value;
+                var filteredData = originalData.split('\n').filter(function(line) {
+                    return line.startsWith(searchInput);
+                }).join('\n');
 
-        function confirmArchive() {
-            if (confirm("Are you sure you want to reset all data? This action cannot be undone.")) {
-                location.href = '/archive_all';
-            }
-        }
+                var tableBody = document.querySelector('table tbody');
+                tableBody.innerHTML = ''; 
 
-        function showPopup() {
-            document.getElementById('editPopup').style.display = 'flex';
-            fetch('/valid_students_content')
-                .then(response => response.text())
-                .then(text => document.getElementById('validStudentsContent').value = text);
-        }
+                filteredData.split('\n').forEach(function(line) {
+                    if (line) {
+                        var parts = line.split(" | ");
+                        var student_id = parts[0];
+                        var time_str = parts[1]; 
+                        var outreach_hours = eventOutreachHours[student_id] || "0 hours 0 minutes"; 
 
-        function hidePopup() {
-            document.getElementById('editPopup').style.display = 'none';
-        }
+                        var row = document.createElement('tr');
+                        row.dataset.studentId = student_id; // Add data attribute for student ID
+                        row.innerHTML = `
+                            <td><a href="#" class="student-link">${student_id}</a></td> 
+                            <td>${time_str}</td>
+                            <td>${outreach_hours}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    }
+                });
 
-        function saveChanges() {
-            const content = document.getElementById('validStudentsContent').value;
-            fetch('/save_valid_students', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ content: content }),
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('Changes saved successfully!');
-                    hidePopup();
-                } else {
-                    alert('Failed to save changes.');
-                }
+                // Reattach event listeners to the new student links
+                studentLinks = document.querySelectorAll('.student-link');
+                studentLinks.forEach(link => {
+                    link.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        var studentId = this.parentElement.parentElement.dataset.studentId;
+                        showPopup(studentId);
+                    });
+                });
             });
+        };
+
+        function showPopup(studentId) {
+            document.getElementById('popupStudentID').innerText = "Student ID: " + studentId;
+
+            var dailyBreakdown = studentDailyData[studentId] || []; 
+            var tableBody = document.querySelector('#dailyBreakdownTable tbody');
+            tableBody.innerHTML = ''; // Clear existing data
+
+            dailyBreakdown.forEach(entry => {
+                var row = tableBody.insertRow();
+                var dateCell = row.insertCell();
+                var loggedTimeCell = row.insertCell();
+                var outreachHoursCell = row.insertCell();
+
+                dateCell.textContent = entry.date;
+                loggedTimeCell.textContent = entry.logged_time;
+                outreachHoursCell.textContent = entry.outreach_hours; 
+            });
+
+            document.getElementById('studentDetailsPopup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('studentDetailsPopup').style.display = 'none';
         }
     </script>
 </body>
