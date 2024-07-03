@@ -240,16 +240,17 @@
             var tableBody = document.querySelector('#dailyBreakdownTable tbody');
             tableBody.innerHTML = ''; // Clear existing data
 
-            dailyBreakdown.forEach(entry => {
+            for (var date in dailyBreakdown) {
+                var entry = dailyBreakdown[date];
                 var row = tableBody.insertRow();
                 var dateCell = row.insertCell();
                 var loggedTimeCell = row.insertCell();
                 var outreachHoursCell = row.insertCell();
 
-                dateCell.textContent = entry.date;
+                dateCell.textContent = date;
                 loggedTimeCell.textContent = entry.logged_time;
                 outreachHoursCell.textContent = entry.outreach_hours; 
-            });
+            }
 
             document.getElementById('studentDetailsPopup').style.display = 'block';
         }

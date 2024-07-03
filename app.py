@@ -499,16 +499,28 @@ def event_hours(eventname):
                             outreach_hours_str = f"{outreach_hours_int} hours {outreach_minutes} minutes"
 
                             if student_id not in student_daily_data:
-                                student_daily_data[student_id] = []  # Use a list to preserve date order
-                            
-                            #Append to list (no longer using a nested dictionary)
-                            student_daily_data[student_id].append({
-                                'date': date,
-                                'logged_time': logged_time,
-                                'outreach_hours': outreach_hours_str
-                            })
+                                student_daily_data[student_id] = {}  # Use a dictionary to store daily data
 
-    # *** Write to event_totals_file ***
+                            if date not in student_daily_data[student_id]:
+                                student_daily_data[student_id][date] = {
+                                    'logged_time': 0,
+                                    'outreach_hours': 0
+                                }
+
+                            # Aggregate logged time and outreach hours for the same day
+                            student_daily_data[student_id][date]['logged_time'] += int(hours) * 60 + int(minutes)
+                            student_daily_data[student_id][date]['outreach_hours'] += outreach_hours
+
+    # Convert aggregated daily data to the required format
+    for student_id, daily_data in student_daily_data.items():
+        for date, data in daily_data.items():
+            logged_time_hours, logged_time_minutes = divmod(data['logged_time'], 60)
+            outreach_hours_int = int(data['outreach_hours'])
+            outreach_minutes = int(round((data['outreach_hours'] - outreach_hours_int) * 60))
+            data['logged_time'] = f"{logged_time_hours} hours {logged_time_minutes} minutes"
+            data['outreach_hours'] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+
+    # Write to event_totals_file
     with open(event_totals_file, 'w') as f:
         for id, total_minutes in event_totals.items():
             hours, minutes = divmod(total_minutes, 60)
