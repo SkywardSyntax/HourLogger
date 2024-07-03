@@ -516,7 +516,118 @@ def event_hours(eventname):
     return render_template('event_hours.html', data=data, eventname=eventname, version=version_number, 
                            event_outreach_hours=event_outreach_hours, event_name=event_name,
                            student_daily_data=student_daily_data)  # Pass student_daily_data to the template
+@app.route('/<eventname>-hours' + r_string, methods=['GET'])
+def event_hours(eventname):
+    event_file = f'data/eventRawHours/attendance-{eventname}.txt'
+    event_totals_file = f'data/eventTotalHours/{eventname}-HourTotals.txt'
 
+    event_totals = {}
+
+    # Read and sort entries from the event attendance file
+    with open(event_file, 'r') as f:
+        entries = f.readlines()
+    
+    # Sort entries chronologically based on check-in time
+    entries = sorted(entries, key=lambda x: datetime.datetime.strptime(re.search(r'Checked In at (.+?) and', x).group(1), '%Y-%m-%d %H:%M:%S.%f'))
+
+    with open(event_file, 'w') as f:
+        f.writelines(entries)
+
+    with open(event_file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            match = re.match(r'(\d+)\sChecked In at (.+?) and Checked Out at (.+?), Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
+            if match:
+                id, check_in_time_str, check_out_time_str, hours_str, minutes_str = match.groups()
+
+            hours = int(hours_str) if hours_str.isdigit() else 0
+            minutes = int(minutes_str) if minutes_str.isdigit() else 0
+            total_minutes = hours * 60 + minutes
+
+            if id in event_totals:
+                event_totals[id] += total_minutes
+            else:
+                event_totals[id] = total_minutes
+
+    # Get event name, outreach factor, and cap from event_list.txt
+    with open('data/event_list.txt', 'r') as f:
+        for line in f:
+            event_code, event_name, outreach_scale_factor, outreach_hour_cap = line.strip().split(' | ')
+            if event_code == eventname:
+                outreach_scale_factor = float(outreach_scale_factor)
+                outreach_hour_cap = float(outreach_hour_cap)
+                break
+        else:
+            outreach_scale_factor = 1.0
+            outreach_hour_cap = float('inf')  # No cap if not found
+            event_name = eventname # Use event code as name if not found
+
+    event_outreach_hours = {}
+    student_daily_data = {}  # Initialize student_daily_data
+
+    # Collect daily data for the popup (modified) ***
+    for root, dirs, files in os.walk("data"):
+        for file in files:
+            if file.startswith("attendance"):
+                file_path = os.path.join(root, file)
+                with open(file_path, 'r') as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        line = line.strip()
+                        # Extract date from attendance file line
+                        match = re.match(r'(\d+) Checked In at (\d{4}-\d{2}-\d{2}) .+ and Checked Out at .+, Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
+                        if match:
+                            student_id, date, hours, minutes = match.groups()
+                            logged_time = f"{hours} hours {minutes} minutes"
+
+                            # Calculate outreach hours (considering cap and factor)
+                            total_event_hours = (int(hours) * 60 + int(minutes)) / 60
+                            outreach_hours = min(round(total_event_hours * outreach_scale_factor, 2), outreach_hour_cap)
+                            outreach_hours_int = int(outreach_hours)
+                            outreach_minutes = int(round((outreach_hours - outreach_hours_int) * 60))
+                            outreach_hours_str = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+
+                            if student_id not in student_daily_data:
+                                student_daily_data[student_id] = {}  # Use a dictionary for daily data
+
+                            # Accumulate time for the same day
+                            if date in student_daily_data[student_id]:
+                                current_hours, current_minutes = map(int, student_daily_data[student_id][date]['logged_time'].split(' hours ')[0].split(' minutes'))
+                                total_minutes = (current_hours * 60 + current_minutes) + (int(hours) * 60 + int(minutes))
+                                hours, minutes = divmod(total_minutes, 60)
+                                student_daily_data[student_id][date]['logged_time'] = f"{hours} hours {minutes} minutes"
+                                student_daily_data[student_id][date]['outreach_hours'] = outreach_hours_str
+                            else:
+                                student_daily_data[student_id][date] = {
+                                    'logged_time': logged_time,
+                                    'outreach_hours': outreach_hours_str
+                                }
+
+    # Convert daily data dictionary to list of dictionaries for each student
+    for student_id in student_daily_data:
+        student_daily_data[student_id] = list(student_daily_data[student_id].values())
+
+    # *** Write to event_totals_file ***
+    with open(event_totals_file, 'w') as f:
+        for id, total_minutes in event_totals.items():
+            hours, minutes = divmod(total_minutes, 60)
+            total_event_hours = total_minutes / 60
+            outreach_hours = min(round(total_event_hours * outreach_scale_factor, 2), outreach_hour_cap)
+
+            # Calculate outreach hours in hours and minutes
+            outreach_hours_int = int(outreach_hours)
+            outreach_minutes = int(round((outreach_hours - outreach_hours_int) * 60))
+
+            event_outreach_hours[id] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+            f.write(f"{id} | {hours} hours {minutes} minutes | {outreach_hours_int} hours {outreach_minutes} minutes\n")
+
+    with open(event_totals_file, 'r') as f:
+        data = f.read()
+
+    return render_template('event_hours.html', data=data, eventname=eventname, version=version_number, 
+                           event_outreach_hours=event_outreach_hours, event_name=event_name,
+                           student_daily_data=student_daily_data)  # Pass student_daily_data to the template
+                           
 def confirm_reset():
     return True
 
