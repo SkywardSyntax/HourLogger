@@ -476,7 +476,7 @@ def event_hours(eventname):
     event_outreach_hours = {}
     student_daily_data = {}  # Initialize student_daily_data
 
-    # Collect daily data for the popup (modified) ***
+    # Collect daily data for the popup (modified)
     for root, dirs, files in os.walk("data"):
         for file in files:
             if file.startswith("attendance"):
@@ -499,28 +499,14 @@ def event_hours(eventname):
                             outreach_hours_str = f"{outreach_hours_int} hours {outreach_minutes} minutes"
 
                             if student_id not in student_daily_data:
-                                student_daily_data[student_id] = {}  # Use a dictionary for daily data
-
-                            # Accumulate time for the same day
-                            if date in student_daily_data[student_id]:
-                                time_parts = student_daily_data[student_id][date]['logged_time'].split(' hours ')
-                                current_hours = int(time_parts[0])
-                                # Extract minutes only if they exist
-                                current_minutes = int(time_parts[1].split(' minutes')[0]) if ' minutes' in time_parts[1] else 0  
-                                
-                                total_minutes = (current_hours * 60 + current_minutes) + (int(hours) * 60 + int(minutes))
-                                hours, minutes = divmod(total_minutes, 60)
-                                student_daily_data[student_id][date]['logged_time'] = f"{hours} hours {minutes} minutes"
-                                student_daily_data[student_id][date]['outreach_hours'] = outreach_hours_str
-                            else:
-                                student_daily_data[student_id][date] = {
-                                    'logged_time': logged_time,
-                                    'outreach_hours': outreach_hours_str
-                                }
-
-    # Convert daily data dictionary to list of dictionaries for each student
-    for student_id in student_daily_data:
-        student_daily_data[student_id] = list(student_daily_data[student_id].values())
+                                student_daily_data[student_id] = []  # Use a list to preserve date order
+                            
+                            #Append to list (no longer using a nested dictionary)
+                            student_daily_data[student_id].append({
+                                'date': date,
+                                'logged_time': logged_time,
+                                'outreach_hours': outreach_hours_str
+                            })
 
     # *** Write to event_totals_file ***
     with open(event_totals_file, 'w') as f:
@@ -542,7 +528,7 @@ def event_hours(eventname):
     return render_template('event_hours.html', data=data, eventname=eventname, version=version_number, 
                            event_outreach_hours=event_outreach_hours, event_name=event_name,
                            student_daily_data=student_daily_data)  # Pass student_daily_data to the template
-
+                           
 def confirm_reset():
     return True
 
