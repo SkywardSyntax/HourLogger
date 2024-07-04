@@ -120,6 +120,26 @@
             font-size: 20px;
             cursor: pointer;
         }
+
+        .more-details-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-decoration: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .more-details-button:hover {
+            background-color: #0056b3;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -167,6 +187,7 @@
 
     <div class="version-display">{{ version }}</div>
     <a href="/" class="back-to-home">Go Back to Home</a>
+    <a href="/event-hours" class="more-details-button">More Details</a>
 
     <script>
         var volunteerEventData = JSON.parse('{{ volunteer_event_data | tojson | safe }}');
