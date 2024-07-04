@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Total Volunteer Hours</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121212; 
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #333333; 
+            border-radius: 15px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            margin-bottom: 20px; 
+            color: #E0E0E0; 
+        }
+
+        h1 {
+            color: #E0E0E0; 
+        }
+
+        pre {
+            display: none;
+        }
+
+        #searchInput {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 300px;
+            transition: border .3s;
+            background-color: #2d2d2d;
+            color: #E0E0E0; 
+        }
+
+        #searchInput:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        .version-display {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: black;
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        .back-to-home {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-decoration: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        table {
+            margin: 0 auto 20px auto;
+            width: 80%; 
+            border-collapse: collapse;
+            color: #E0E0E0; 
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            background-color: #2d2d2d; 
+            color: #E0E0E0; 
+        }
+
+        th {
+            background-color: #333333; 
+        }
+
+        .popup {
+            display: none; 
+            position: fixed; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+            background-color: #333333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5); 
+            z-index: 100; 
+            color: #E0E0E0;
+        }
+
+        .popup h2 {
+            margin-top: 0;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Total Volunteer Hours</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Number</th>
+                    <th>Total Volunteer Hours</th>
+                    <th>Total Outreach Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for id, time in volunteer_totals.items() %}
+                <tr data-student-id="{{ id }}">
+                    <td><a href="#" class="student-link">{{ id }}</a></td>
+                    <td>{{ time['hours'] }} hours {{ time['minutes'] }} minutes</td> 
+                    <td>{{ event_outreach_hours.get(id, "0 hours 0 minutes") }}</td> 
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Popup for detailed hours breakdown by event -->
+    <div id="studentDetailsPopup" class="popup">
+        <span class="close-button" onclick="closePopup()">×</span>
+        <h2 id="popupStudentID">Student ID: </h2>
+        <table id="eventBreakdownTable">
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Volunteer Hours</th>
+                    <th>Outreach Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be populated here using JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="version-display">{{ version }}</div>
+    <a href="/" class="back-to-home">Go Back to Home</a>
+
+    <script>
+        var volunteerEventData = JSON.parse('{{ volunteer_event_data | tojson | safe }}');
+
+        window.onload = function() {
+            // Event listener for student links
+            var studentLinks = document.querySelectorAll('.student-link');
+            studentLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); 
+                    var studentId = this.parentElement.parentElement.dataset.studentId;
+                    showPopup(studentId);
+                });
+            });
+        };
+
+        function showPopup(studentId) {
+            document.getElementById('popupStudentID').innerText = "Student ID: " + studentId;
+
+            var eventBreakdown = volunteerEventData[studentId] || {};
+            var tableBody = document.querySelector('#eventBreakdownTable tbody');
+            tableBody.innerHTML = ''; 
+
+            for (var eventName in eventBreakdown) {
+                var row = tableBody.insertRow();
+                var eventCell = row.insertCell();
+                var volunteerHoursCell = row.insertCell();
+                var outreachHoursCell = row.insertCell();
+
+                eventCell.textContent = eventName; 
+                volunteerHoursCell.textContent = eventBreakdown[eventName].hours + " hours " + eventBreakdown[eventName].minutes + " minutes";
+                outreachHoursCell.textContent = eventBreakdown[eventName].outreach_hours; // Display outreach hours for the event
+            }
+
+            document.getElementById('studentDetailsPopup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('studentDetailsPopup').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -696,8 +696,8 @@ def check_exclusive_checkin(student_id, date_of_correction):
 
     return json.dumps({'exists': exists})
 
-@app.route('/volunteer-hours', methods=['GET', 'POST'])
-def volunteer_hours():
+@app.route('/event-hours', methods=['GET', 'POST'])
+def event_hours_selection():
     if request.method == 'POST':
         event = request.form.get('event')
         eventName = request.form.get('eventName')
@@ -707,9 +707,108 @@ def volunteer_hours():
         events = file.readlines()
 
     return render_template('volunteer_hours.html', events=events, version=version_number)
-
     return json.dumps({'exists': exists})
 
+@app.route('/volunteer-hours', methods=['GET'])
+def volunteer_hours():
+    volunteer_totals = {}
+    volunteer_event_data = {}
+    event_outreach_hours = {}  # Dictionary to store total outreach hours
+
+    # Get event data (name, scale factor, cap) from event_list.txt
+    event_data = {}
+    with open('data/event_list.txt', 'r') as event_file:
+        for event_line in event_file:
+            event_code, event_name, outreach_scale_factor, outreach_hour_cap = event_line.strip().split(' | ')
+            event_data[event_code] = {
+                'event_name': event_name,
+                'outreach_scale_factor': float(outreach_scale_factor),
+                'outreach_hour_cap': float(outreach_hour_cap)
+            }
+
+    # Calculate total volunteer hours and outreach hours across all events
+    for root, dirs, files in os.walk("data"):
+        for file in files:
+            if file.startswith("attendance"):
+                file_path = os.path.join(root, file)
+
+                # Check if filename contains a hyphen before splitting
+                if '-' in file:
+                    # Get event code from filename
+                    event_code = file_path.split('/')[-1].split('-', 1)[1].split('.')[0]
+
+                    # Get outreach data for the event
+                    outreach_scale_factor = event_data.get(event_code, {}).get('outreach_scale_factor', 1.0)
+                    outreach_hour_cap = event_data.get(event_code, {}).get('outreach_hour_cap', float('inf'))
+
+                    with open(file_path, 'r') as f:
+                        lines = f.readlines()
+                        for line in lines:
+                            line = line.strip()
+                            match = re.match(r'(\d+) Checked In at .+ and Checked Out at .+, Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
+                            if match:
+                                student_id, hours, minutes = match.groups()
+                                hours = int(hours)
+                                minutes = int(minutes)
+
+                                if student_id not in volunteer_totals:
+                                    volunteer_totals[student_id] = {'hours': 0, 'minutes': 0}
+                                volunteer_totals[student_id]['hours'] += hours
+                                volunteer_totals[student_id]['minutes'] += minutes
+
+                                # Calculate outreach hours for the entry
+                                total_event_hours = (hours * 60 + minutes) / 60
+                                outreach_hours = round(total_event_hours * outreach_scale_factor, 2) 
+
+                                # Get event name from event_data
+                                event_name = event_data.get(event_code, {}).get('event_name', event_code)
+
+                                # Store event-specific data for the popup
+                                if student_id not in volunteer_event_data:
+                                    volunteer_event_data[student_id] = {}
+                                if event_name not in volunteer_event_data[student_id]:
+                                    volunteer_event_data[student_id][event_name] = {'hours': 0, 'minutes': 0, 'outreach_hours': 0}
+
+                                # Add outreach hours to event data (before capping)
+                                volunteer_event_data[student_id][event_name]['hours'] += hours
+                                volunteer_event_data[student_id][event_name]['minutes'] += minutes
+                                volunteer_event_data[student_id][event_name]['outreach_hours'] += outreach_hours
+
+                                # Cap outreach hours for the event in the total outreach hours dictionary
+                                if student_id not in event_outreach_hours:
+                                    event_outreach_hours[student_id] = 0
+                                event_outreach_hours[student_id] = min(event_outreach_hours[student_id] + outreach_hours, outreach_hour_cap)
+
+                else:
+                    # Handle files that don't contain a hyphen (optional)
+                    print(f"Skipping file: {file} - doesn't contain a hyphen")
+
+    # Convert minutes to hours for both total volunteer and event data
+    for student_id in volunteer_totals:
+        hours, minutes = divmod(volunteer_totals[student_id]['minutes'], 60)
+        volunteer_totals[student_id]['hours'] += hours
+        volunteer_totals[student_id]['minutes'] = minutes
+
+        for event_name in volunteer_event_data[student_id]:
+            hours, minutes = divmod(volunteer_event_data[student_id][event_name]['minutes'], 60)
+            volunteer_event_data[student_id][event_name]['hours'] += hours
+            volunteer_event_data[student_id][event_name]['minutes'] = minutes
+
+            # Calculate and update outreach hours in hours and minutes for each event
+            outreach_hours = volunteer_event_data[student_id][event_name]['outreach_hours']
+            outreach_hours_int = int(outreach_hours)
+            outreach_minutes = int(round((outreach_hours - outreach_hours_int) * 60))
+            volunteer_event_data[student_id][event_name]['outreach_hours'] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+
+    # Convert total outreach hours to hours and minutes
+    for student_id in event_outreach_hours:
+        outreach_hours_int = int(event_outreach_hours[student_id])
+        outreach_minutes = int(round((event_outreach_hours[student_id] - outreach_hours_int) * 60))
+        event_outreach_hours[student_id] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+
+    return render_template('total_volunteer_hours.html', volunteer_totals=volunteer_totals,
+                           version=version_number, volunteer_event_data=volunteer_event_data,
+                           event_outreach_hours=event_outreach_hours)  # Pass event_outreach_hours to template
 def quicksort(arr):
     if len(arr) <= 1:
         return arr
