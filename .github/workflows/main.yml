@@ -23,7 +23,7 @@ jobs:
 
     - name: Host and Error Check app.py with gunicorn
       run:  |
-            timeout 30s gunicorn --bind 0.0.0.0:8000 app:app || exit_code=$?
+            timeout 10s gunicorn --bind 0.0.0.0:8000 app:app || exit_code=$?
             if [ $exit_code -eq 124 ]; then
               echo "Command exited with code 124, ignoring"
               exit 0
