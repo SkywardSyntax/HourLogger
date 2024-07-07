@@ -222,6 +222,21 @@ class Attendance:
 
 attendance = Attendance() 
 
+def get_event_data(event_code):
+    """Retrieves event data from event_list.txt based on event code."""
+    with open('data/event_list.txt', 'r') as f:
+        for line in f:
+            code, name, scale_factor, hour_cap, status = line.strip().split(' | ')
+            if code == event_code:
+                return {
+                    'event_code': code,
+                    'event_name': name,
+                    'outreach_scale_factor': float(scale_factor),
+                    'outreach_hour_cap': float(hour_cap),
+                    'event_status': status
+                }
+    return None  # Return None if event code not found
+
 def check_client_cooldown(client_ip):
     current_time = time.time()
     if client_ip not in client_request_counts:
@@ -401,14 +416,8 @@ def volunteer():
 def volunteer_select():
     if request.method == 'POST':
         event = request.form.get('event')
-        eventName = request.form.get('eventName')
-        try:
-            with open(f'data/eventRawHours/attendance-{event}.txt', 'x') as f:
-                pass 
-        except FileExistsError:
-            pass 
-        return redirect(url_for('volunteer_login', event=event, eventName=eventName))
-
+        return redirect(url_for('volunteer_login', event_code=event))  # Pass event code only
+    
     with open('data/event_list.txt', 'r') as file:
         events = file.readlines()
 
@@ -421,13 +430,7 @@ def volunteer_select():
 def volunteer_select_unlocked():
     if request.method == 'POST':
         event = request.form.get('event')
-        eventName = request.form.get('eventName')
-        try:
-            with open(f'data/eventRawHours/attendance-{event}.txt', 'x') as f:
-                pass
-        except FileExistsError:
-            pass
-        return redirect(url_for('volunteer_login', event=event, eventName=eventName, unlocked=True))
+        return redirect(url_for('volunteer_login', event_code=event)) # Pass event code only
 
     with open('data/event_list.txt', 'r') as file:
         events = file.readlines()
@@ -439,26 +442,36 @@ def volunteer_select_unlocked():
 
 
 
+
 @app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
 def volunteer_login():
+    event_code = request.args.get('event_code')  # Get event code from URL
+    event_data = get_event_data(event_code)  # Get event data
+
+    if event_data is None:
+        return render_template('event_no_exist.html', version=version_number)
+
     message = ''
-    eventName = request.args.get('eventName')
-    event = request.args.get('event') 
     if request.method == 'POST':
         id = request.form.get('id')
+        message = attendance.check_status_and_act(id, event_code)
 
-        attendance_file = f'data/eventRawHours/attendance-{event}.txt'
-        message = attendance.check_status_and_act(id, event)
+    return render_template('volunteer_login.html', message=message, event=event_data['event_name'], version=version_number, recent_events=recent_events)
+@app.route('/<event_code>-hours' + r_string, methods=['GET'])
+def event_hours(event_code):
+    event_data = get_event_data(event_code)
 
-    return render_template('volunteer_login.html', message=message, event=eventName, version=version_number, recent_events=recent_events) 
+    if event_data is None:
+        return render_template('event_no_exist.html', version=version_number)
 
-@app.route('/<eventname>-hours' + r_string, methods=['GET'])
-def event_hours(eventname):
-    event_file = f'data/eventRawHours/attendance-{eventname}.txt'
-    event_totals_file = f'data/eventTotalHours/{eventname}-HourTotals.txt'
+    event_file = f'data/eventRawHours/attendance-{event_code}.txt'
+    event_totals_file = f'data/eventTotalHours/{event_code}-HourTotals.txt'
+    event_name = event_data['event_name']  # Get event name from event_data
+    outreach_scale_factor = event_data['outreach_scale_factor']
+    outreach_hour_cap = event_data['outreach_hour_cap']
 
-    event_totals = {}
-
+    event_totals = {} # Define event_totals here
+    
     # Read and sort entries from the event attendance file
     with open(event_file, 'r') as f:
         entries = f.readlines()
@@ -484,20 +497,6 @@ def event_hours(eventname):
                 event_totals[id] += total_minutes
             else:
                 event_totals[id] = total_minutes
-
-    # Get event name, outreach factor, cap, and status from event_list.txt
-    with open('data/event_list.txt', 'r') as f:
-        for line in f:
-            event_code, event_name, outreach_scale_factor, outreach_hour_cap, event_status = line.strip().split(' | ') # Unpack 5 values
-            if event_code == eventname:
-                outreach_scale_factor = float(outreach_scale_factor)
-                outreach_hour_cap = float(outreach_hour_cap)
-                break
-        else:
-            outreach_scale_factor = 1.0
-            outreach_hour_cap = float('inf')  # No cap if not found
-            event_name = eventname # Use event code as name if not found
-            event_status = "Unlocked" # Default to unlocked
 
     event_outreach_hours = {}
     student_daily_data = {}  # Initialize student_daily_data
@@ -563,7 +562,7 @@ def event_hours(eventname):
     with open(event_totals_file, 'r') as f:
         data = f.read()
 
-    return render_template('event_hours.html', data=data, eventname=eventname, version=version_number, 
+    return render_template('event_hours.html', data=data, event_code=event_code, version=version_number, 
                            event_outreach_hours=event_outreach_hours, event_name=event_name,
                            student_daily_data=student_daily_data)  # Pass student_daily_data to the template
                            
@@ -726,9 +725,7 @@ def check_exclusive_checkin(student_id, date_of_correction):
 def event_hours_selection():
     if request.method == 'POST':
         event = request.form.get('event')
-        eventName = request.form.get('eventName')
-
-        return redirect(url_for('event_hours', eventname=event)) # Redirect to event_hours
+        return redirect(url_for('event_hours', event_code=event)) # Pass event code only
 
     with open('data/event_list.txt', 'r') as file:
         events = file.readlines()
@@ -741,7 +738,7 @@ def volunteer_hours():
     volunteer_event_data = {}
     event_outreach_hours = {}  # Dictionary to store total outreach hours
 
-    # Get event data (name, scale factor, cap) from event_list.txt
+    # Get event data (name, scale factor, cap, status) from event_list.txt
     event_data = {}
     with open('data/event_list.txt', 'r') as event_file:
         for event_line in event_file:
@@ -785,7 +782,7 @@ def volunteer_hours():
 
                                 # Calculate outreach hours for the entry
                                 total_event_hours = (hours * 60 + minutes) / 60
-                                outreach_hours = round(total_event_hours * outreach_scale_factor, 2) 
+                                outreach_hours = round(total_event_hours * outreach_scale_factor, 2)
 
                                 # Get event name from event_data
                                 event_name = event_data.get(event_code, {}).get('event_name', event_code)
@@ -836,6 +833,7 @@ def volunteer_hours():
     return render_template('total_volunteer_hours.html', volunteer_totals=volunteer_totals,
                            version=version_number, volunteer_event_data=volunteer_event_data,
                            event_outreach_hours=event_outreach_hours)  # Pass event_outreach_hours to template
+
 def quicksort(arr):
     if len(arr) <= 1:
         return arr

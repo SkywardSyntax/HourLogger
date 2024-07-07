@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Not Found</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 50px;
+        }
+        .error-message {
+            background-color: #ffcccc;
+            color: #cc0000;
+            padding: 20px;
+            margin: 20px auto;
+            width: 50%;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #cc0000;
+        }
+        /* Style for version display */
+        .version-display {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: black;
+            padding: 5px;
+            font-size: 12px;
+        }
+        /* Go Back to Home button */
+        .back-to-home {
+            background-color: #4CAF50; /* Volunteer login button color */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-decoration: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-message">
+        <h1>Event Not Found</h1>
+        <p>The event you are trying to access does not exist.</p>
+    </div>
+    <a href="/" class="back-to-home">Go Back to Home</a>
+    <div class="version-display">{{ version }}</div>
+</body>
+</html>
