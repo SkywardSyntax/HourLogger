@@ -1,1 +1,1 @@
-EVENT1 | Robocamp (Week 1) | 0.33333333 | 12.00
+EVENT1 | Robocamp (Week 1) | 0.33333333 | 12.00 | Unlocked

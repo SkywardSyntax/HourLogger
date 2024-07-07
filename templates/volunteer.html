@@ -71,6 +71,26 @@
         {% if error %}
         <p style="color: red;">{{ error }}</p>
         {% endif %}
+        /* Style for "View Unlocked Events" button */
+        .unlocked-events-button {
+            width: 85%;
+            background-color: #007bff; /* Blue color for the button */
+            color: white;
+            padding: 5px 5px;
+            border: none;
+            font-size: 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: block;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        }
+
+        .unlocked-events-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+        }
     </style>
 </head>
 <body>
@@ -81,6 +101,7 @@
             <label for="password">Password:</label>
             <input type="password" id="password" name="password">
             <input type="submit" value="Submit">
+            <input type="button" class="unlocked-events-button" value="View Unlocked Events" onclick="location.href='/volunteer-select-unlocked{{ r_string }}'"> 
             {% if error %}
             <p id="message">{{ error }}</p>
             {% endif %}
@@ -88,5 +109,6 @@
     </div>
     <!-- Go Back to Home button -->
     <a href="/" style="position: fixed; bottom: 20px; right: 20px; background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 12px; text-decoration: none;">Go Back to Home</a>
+    
 </body>
 </html>

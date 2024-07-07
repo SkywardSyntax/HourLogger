@@ -408,11 +408,36 @@ def volunteer_select():
         except FileExistsError:
             pass 
         return redirect(url_for('volunteer_login', event=event, eventName=eventName))
-    
+
     with open('data/event_list.txt', 'r') as file:
         events = file.readlines()
-    
-    return render_template('volunteer_select.html', events=events, version=version_number)
+
+    # Filter for locked events
+    locked_events = [event for event in events if event.strip().split(' | ')[-1] == 'Locked']
+
+    return render_template('volunteer_select.html', events=locked_events, version=version_number) 
+
+@app.route('/volunteer-select-unlocked', methods=['GET', 'POST'])
+def volunteer_select_unlocked():
+    if request.method == 'POST':
+        event = request.form.get('event')
+        eventName = request.form.get('eventName')
+        try:
+            with open(f'data/eventRawHours/attendance-{event}.txt', 'x') as f:
+                pass
+        except FileExistsError:
+            pass
+        return redirect(url_for('volunteer_login', event=event, eventName=eventName, unlocked=True))
+
+    with open('data/event_list.txt', 'r') as file:
+        events = file.readlines()
+
+    # Filter for unlocked events
+    unlocked_events = [event for event in events if event.strip().split(' | ')[-1] == 'Unlocked']
+
+    return render_template('volunteer_select_unlocked.html', events=unlocked_events, version=version_number)
+
+
 
 @app.route('/volunteer-login' + r_string, methods=['GET', 'POST'])
 def volunteer_login():
