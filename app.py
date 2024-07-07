@@ -485,10 +485,10 @@ def event_hours(eventname):
             else:
                 event_totals[id] = total_minutes
 
-    # Get event name, outreach factor, and cap from event_list.txt
+    # Get event name, outreach factor, cap, and status from event_list.txt
     with open('data/event_list.txt', 'r') as f:
         for line in f:
-            event_code, event_name, outreach_scale_factor, outreach_hour_cap = line.strip().split(' | ')
+            event_code, event_name, outreach_scale_factor, outreach_hour_cap, event_status = line.strip().split(' | ') # Unpack 5 values
             if event_code == eventname:
                 outreach_scale_factor = float(outreach_scale_factor)
                 outreach_hour_cap = float(outreach_hour_cap)
@@ -497,6 +497,7 @@ def event_hours(eventname):
             outreach_scale_factor = 1.0
             outreach_hour_cap = float('inf')  # No cap if not found
             event_name = eventname # Use event code as name if not found
+            event_status = "Unlocked" # Default to unlocked
 
     event_outreach_hours = {}
     student_daily_data = {}  # Initialize student_daily_data
@@ -726,13 +727,13 @@ def event_hours_selection():
     if request.method == 'POST':
         event = request.form.get('event')
         eventName = request.form.get('eventName')
-        return redirect(url_for('event_hours', eventname=event))
+
+        return redirect(url_for('event_hours', eventname=event)) # Redirect to event_hours
 
     with open('data/event_list.txt', 'r') as file:
         events = file.readlines()
 
     return render_template('volunteer_hours.html', events=events, version=version_number)
-    return json.dumps({'exists': exists})
 
 @app.route('/volunteer-hours', methods=['GET'])
 def volunteer_hours():
@@ -744,11 +745,12 @@ def volunteer_hours():
     event_data = {}
     with open('data/event_list.txt', 'r') as event_file:
         for event_line in event_file:
-            event_code, event_name, outreach_scale_factor, outreach_hour_cap = event_line.strip().split(' | ')
+            event_code, event_name, outreach_scale_factor, outreach_hour_cap, lockStatus = event_line.strip().split(' | ')
             event_data[event_code] = {
                 'event_name': event_name,
                 'outreach_scale_factor': float(outreach_scale_factor),
-                'outreach_hour_cap': float(outreach_hour_cap)
+                'outreach_hour_cap': float(outreach_hour_cap),
+                'lockStatus': lockStatus
             }
 
     # Calculate total volunteer hours and outreach hours across all events
