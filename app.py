@@ -116,7 +116,7 @@ class Attendance:
 
     def add_hours(self, student_id, date_of_correction, hours_to_add, minutes_to_add, file_selection):
         for filename in file_selection:
-            file_path = os.path.join("data", filename)
+            file_path = filename
             with open(file_path, "r+") as f:
                 lines = f.readlines()
                 for i, line in enumerate(lines):
@@ -189,7 +189,7 @@ class Attendance:
     
     def add_exclusive_check_in_out(self, student_id, date_of_correction, check_in_time, check_out_time, file_selection):
         for filename in file_selection:
-            file_path = os.path.join("data", filename)
+            file_path = filename
 
             with open(file_path, "r+") as f:
                 lines = f.readlines()
@@ -706,17 +706,21 @@ def hours_corrector():
 
 @app.route('/check_exclusive_checkin/<student_id>/<date_of_correction>', methods=['POST'])
 def check_exclusive_checkin(student_id, date_of_correction):
-    exists = False
-    selected_files = request.json.get('files', []) 
-    for filename in selected_files: 
-        file_path = filename  # Use filename directly (without os.path.join)
+    exists = 'no_entry'  # Default: no entry found
+    selected_files = request.json.get('files', [])
+    for filename in selected_files:
+        file_path = filename 
         with open(file_path, "r") as f:
             lines = f.readlines()
             for line in lines:
-                if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line and "Checked Out" not in line:
-                    exists = True
-                    break 
-        if exists:
+                if line.startswith(f"{student_id} Checked In") and str(date_of_correction) in line:
+                    if "Checked Out" in line:
+                        exists = 'check_out'  # Check-out entry found
+                        break
+                    else:
+                        exists = 'check_in'  # Check-in entry found (without check-out)
+                        break
+        if exists != 'no_entry':  
             break
 
     return json.dumps({'exists': exists})

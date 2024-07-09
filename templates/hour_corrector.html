@@ -196,20 +196,27 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.exists) {
-                    checkInTimeInput.disabled = true;
-                    exclusiveOption.style.display = 'block'; // Show exclusive option
+                if (hoursOptionSelect.value === 'exclusive_check_in_out') { 
+                    if (data.exists === 'check_in') {
+                        checkInTimeInput.disabled = true;
+                        document.getElementById('check_out_time').disabled = false; 
+                    } else if (data.exists === 'no_entry') {
+                        checkInTimeInput.disabled = false; 
+                        document.getElementById('check_out_time').disabled = true; 
+                    } else {
+                        // For any other case (including check_out), enable both
+                        checkInTimeInput.disabled = false; 
+                        document.getElementById('check_out_time').disabled = false;
+                    }
                 } else {
-                    checkInTimeInput.disabled = false;
-                    exclusiveOption.style.display = 'none'; // Hide exclusive option
+                    // For other options, enable both check-in and check-out
+                    checkInTimeInput.disabled = false; 
+                    document.getElementById('check_out_time').disabled = false; 
                 }
 
-                // Enable hoursOptionSelect and relevant input fields:
+                exclusiveOption.style.display = data.exists !== 'no_entry' ? 'block' : 'none'; 
+
                 hoursOptionSelect.disabled = false;
-                document.getElementById('hours_to_add').disabled = false;
-                document.getElementById('minutes_to_add').disabled = false;
-                document.getElementById('check_in_time').disabled = false; 
-                document.getElementById('check_out_time').disabled = false;
                 submitButton.disabled = false;
             });
         }
