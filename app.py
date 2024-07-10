@@ -292,11 +292,18 @@ def home():
     client_ip = request.remote_addr
     if check_client_cooldown(client_ip):
         return redirect(url_for('cooldown'))
-    message = ''
+    
     if request.method == 'POST':
         id = request.form.get('id')
         message = attendance.check_status_and_act(id)
-    return render_template('home.html', message=message, version=version_number, recent_events=recent_events)
+        session['message'] = message  # Store message in session
+        return redirect(url_for('home'))  # Redirect to GET route
+
+    message = session.pop('message', None)  # Retrieve message from session
+    if message: 
+        return render_template('home.html', message=message, version=version_number, recent_events=recent_events)
+    else:
+        return render_template('home.html', version=version_number, recent_events=recent_events)
 
 
 @app.route('/WestwoodRoboticsAdmin', methods=['GET'])
@@ -455,8 +462,15 @@ def volunteer_login():
     if request.method == 'POST':
         id = request.form.get('id')
         message = attendance.check_status_and_act(id, event_code)
+        session['message'] = message  # Store message in session
+        return redirect(url_for('volunteer_login', event_code=event_code))  # Redirect to GET route
 
-    return render_template('volunteer_login.html', message=message, event=event_data['event_name'], version=version_number, recent_events=recent_events)
+    message = session.pop('message', None)  # Retrieve message from session
+    if message:
+        return render_template('volunteer_login.html', message=message, event=event_data['event_name'], version=version_number, recent_events=recent_events)
+    else:
+        return render_template('volunteer_login.html', event=event_data['event_name'], version=version_number, recent_events=recent_events)
+
 @app.route('/<event_code>-hours' + r_string, methods=['GET'])
 def event_hours(event_code):
     event_data = get_event_data(event_code)
