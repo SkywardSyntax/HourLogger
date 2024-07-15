@@ -226,14 +226,16 @@ def get_event_data(event_code):
     """Retrieves event data from event_list.txt based on event code."""
     with open('data/event_list.txt', 'r') as f:
         for line in f:
-            code, name, scale_factor, hour_cap, status = line.strip().split(' | ')
+            code, name, scale_factor, hour_cap, status, event_group = line.strip().split(' | ')
             if code == event_code:
                 return {
                     'event_code': code,
                     'event_name': name,
                     'outreach_scale_factor': float(scale_factor),
                     'outreach_hour_cap': float(hour_cap),
-                    'event_status': status
+                    'event_status': status,
+                    'event_group': event_group
+
                 }
     return None  # Return None if event code not found
 
@@ -429,7 +431,7 @@ def volunteer_select():
         events = file.readlines()
 
     # Filter for locked events
-    locked_events = [event for event in events if event.strip().split(' | ')[-1] == 'Locked']
+    locked_events = [event for event in events if event.strip().split(' | ')[-2] == 'Locked']
 
     return render_template('volunteer_select.html', events=locked_events, version=version_number) 
 
@@ -443,7 +445,7 @@ def volunteer_select_unlocked():
         events = file.readlines()
 
     # Filter for unlocked events
-    unlocked_events = [event for event in events if event.strip().split(' | ')[-1] == 'Unlocked']
+    unlocked_events = [event for event in events if event.strip().split(' | ')[-2] == 'Unlocked']
 
     return render_template('volunteer_select_unlocked.html', events=unlocked_events, version=version_number)
 
@@ -760,13 +762,26 @@ def volunteer_hours():
     event_data = {}
     with open('data/event_list.txt', 'r') as event_file:
         for event_line in event_file:
-            event_code, event_name, outreach_scale_factor, outreach_hour_cap, lockStatus = event_line.strip().split(' | ')
+            event_code, event_name, outreach_scale_factor, outreach_hour_cap, lockStatus, event_group = event_line.strip().split(' | ')
             event_data[event_code] = {
                 'event_name': event_name,
                 'outreach_scale_factor': float(outreach_scale_factor),
                 'outreach_hour_cap': float(outreach_hour_cap),
-                'lockStatus': lockStatus
+                'lockStatus': lockStatus,
+                'event_group': event_group
             }
+        
+    #for each event in event_data, create a hashmap that connects each distinct event_group to a number, where the number is the average (mean) of all the outreach_hour_caps of the events in that specific group
+    event_group_average = {}
+    for event in event_data:
+        event_group = event_data[event]['event_group']
+        if event_group not in event_group_average:
+            event_group_average[event_group] = []
+        event_group_average[event_group].append(event_data[event]['outreach_hour_cap'])
+    for group in event_group_average:
+        event_group_average[group] = sum(event_group_average[group])/len(event_group_average[group])
+
+        
 
     # Calculate total volunteer hours and outreach hours across all events
     for root, dirs, files in os.walk("data"):
@@ -847,10 +862,33 @@ def volunteer_hours():
         outreach_hours_int = int(event_outreach_hours[student_id])
         outreach_minutes = int(round((event_outreach_hours[student_id] - outreach_hours_int) * 60))
         event_outreach_hours[student_id] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+        
+    # Adjust outreach hours according to the cap in event_data
+    for student_id, events in volunteer_event_data.items():
+        for event_name, details in events.items():
+            # Find the corresponding event code since event_name is used in volunteer_event_data
+            event_code = next((code for code, data in event_data.items() if data['event_name'] == event_name), None)
+            if event_code:
+                outreach_hour_cap = event_data[event_code]['outreach_hour_cap']
+                # Ensure outreach_hour_cap is a float for comparison
+                outreach_hour_cap = float(outreach_hour_cap)
+                # Calculate total outreach hours for the event
+                total_outreach_hours_str = details['outreach_hours']
+                # Parse the string to extract hours and minutes
+                hours, minutes = map(int, total_outreach_hours_str.replace('hours', '').replace('minutes', '').split())
+                # Convert to total hours as a float
+                total_outreach_hours = hours + minutes / 60.0
+                # Cap the outreach hours if necessary
+                if total_outreach_hours > outreach_hour_cap:
+                    # Convert capped hours back to the original string format if needed
+                    capped_hours = int(outreach_hour_cap)
+                    capped_minutes = int((outreach_hour_cap - capped_hours) * 60)
+                    volunteer_event_data[student_id][event_name]['outreach_hours'] = f"{capped_hours} hours {capped_minutes} minutes"
+
 
     return render_template('total_volunteer_hours.html', volunteer_totals=volunteer_totals,
-                           version=version_number, volunteer_event_data=volunteer_event_data,
-                           event_outreach_hours=event_outreach_hours)  # Pass event_outreach_hours to template
+                       version=version_number, volunteer_event_data=volunteer_event_data,
+                       event_outreach_hours=event_outreach_hours, event_data=event_data)  # Pass event_data to template
 
 def quicksort(arr):
     if len(arr) <= 1:

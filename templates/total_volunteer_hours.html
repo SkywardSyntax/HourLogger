@@ -176,7 +176,7 @@
                 <tr>
                     <th>Event</th>
                     <th>Volunteer Hours</th>
-                    <th>Outreach Hours</th>
+                    <th>Tentative Outreach Hours</th>
                 </tr>
             </thead>
             <tbody>
@@ -191,18 +191,7 @@
 
     <script>
         var volunteerEventData = JSON.parse('{{ volunteer_event_data | tojson | safe }}');
-
-        window.onload = function() {
-            // Event listener for student links
-            var studentLinks = document.querySelectorAll('.student-link');
-            studentLinks.forEach(link => {
-                link.addEventListener('click', function(event) {
-                    event.preventDefault(); 
-                    var studentId = this.parentElement.parentElement.dataset.studentId;
-                    showPopup(studentId);
-                });
-            });
-        };
+        var eventData = JSON.parse('{{ event_data | tojson | safe }}');  // Add this line
 
         function showPopup(studentId) {
             document.getElementById('popupStudentID').innerText = "Student ID: " + studentId;
@@ -219,11 +208,31 @@
 
                 eventCell.textContent = eventName; 
                 volunteerHoursCell.textContent = eventBreakdown[eventName].hours + " hours " + eventBreakdown[eventName].minutes + " minutes";
-                outreachHoursCell.textContent = eventBreakdown[eventName].outreach_hours; // Display outreach hours for the event
+
+                // Retrieve the outreach hour cap for the event
+                var outreachHourCap = eventData[eventName]?.outreach_hour_cap || Infinity;
+                var actualOutreachHours = eventBreakdown[eventName].outreach_hours.split(' ')[0];  // Assuming format is "X hours Y minutes"
+                if (parseFloat(actualOutreachHours) > outreachHourCap) {
+                    outreachHoursCell.textContent = outreachHourCap + " hours 0 minutes";  // Display capped value
+                } else {
+                    outreachHoursCell.textContent = eventBreakdown[eventName].outreach_hours;  // Display actual value
+                }
             }
 
             document.getElementById('studentDetailsPopup').style.display = 'block';
         }
+
+        window.onload = function() {
+            // Event listener for student links
+            var studentLinks = document.querySelectorAll('.student-link');
+            studentLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); 
+                    var studentId = this.parentElement.parentElement.dataset.studentId;
+                    showPopup(studentId);
+                });
+            });
+        };
 
         function closePopup() {
             document.getElementById('studentDetailsPopup').style.display = 'none';
