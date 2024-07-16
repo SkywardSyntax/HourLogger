@@ -71,16 +71,16 @@
             margin-top: 20px;
             font-size: 18px;
             color: rgb(53, 53, 53);
-            border: 2px solid #4CAF50; /* Add a green border */
+            border: 2px solid #4CAF50; 
             font-weight: bold;
-            padding: 10px; /* Add some padding */
-            border-radius: 5px; /* Round the corners */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add a subtle shadow */
-            visibility: hidden; /* Make it invisible by default */
+            padding: 10px; 
+            border-radius: 5px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+            visibility: hidden; 
         }
 
         #message:not(:empty) {
-            visibility: visible; /* Make it visible when it has content */
+            visibility: visible; 
         }
         /* Style for version display */
         .version-display {
@@ -106,6 +106,7 @@
             font-size: 18px;
             font-weight: bold;
         }
+
         /* New section to display recent events */
         .recent-events {
             position: fixed;
@@ -118,9 +119,10 @@
             box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
             width: 200px;
         }
+
         /* Go Back to Home button */
         .back-to-home {
-            background-color: #4CAF50; /* Volunteer login button color */
+            background-color: #4CAF50; 
             color: white;
             padding: 10px 20px;
             text-align: center;
@@ -134,9 +136,59 @@
             bottom: 20px;
             right: 20px;
         }
+
+        /* Styles for the correction popup */
+        .correction-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            z-index: 100; /* Ensure popup is on top */
+        }
+
+        .correction-popup label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .correction-popup input[type="time"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .correction-popup input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Overlay */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+        }
     </style>
 </head>
 <body>
+    <div id="overlay"></div> <!-- Overlay added here -->
     <div id="event">Event: {{ event }}</div>
     <div class="container">
         <form method="POST">
@@ -150,6 +202,19 @@
             </div>
         </form>
     </div>
+
+    <!-- Correction Popup -->
+    <div id="correctionPopup" class="correction-popup">
+        <h3 id="popupMessage"></h3>
+        <form method="POST" action="/correct_checkout{{ r_string }}">
+            <input type="hidden" name="event" value="{{ event_code }}">
+            <input type="hidden" name="student_id" value=""> 
+            <label for="correctionTime">Enter Correct Check-Out Time:</label>
+            <input type="time" id="correctionTime" name="correction_time" required>
+            <input type="submit" value="Submit Correction">
+        </form>
+    </div>
+
     <div class="recent-events">
         <h4>Recent Events</h4>
         {% for event in recent_events %}
@@ -158,6 +223,7 @@
     </div>
     <div class="version-display">{{ version }}</div>
     <a href="/" class="back-to-home">Go Back to Home</a>
+
     <script>
         window.onload = function() {
             var messageElement = document.getElementById('message');
@@ -166,7 +232,30 @@
                     messageElement.innerHTML = '';
                 }, 5000);
             }
+
+            // Check if popup should be shown 
+            {% if show_correction_popup %}
+                showCorrectionPopup("{{ student_id }}", "{{ check_in_time }}", "{{ check_in_date }}");
+            {% endif %}
         };
+
+        function showCorrectionPopup(studentId, checkInTime, checkInDate) {
+            var popupMessage = document.getElementById('popupMessage');
+            popupMessage.innerHTML = `
+                Student ID ${studentId} checked in at ${checkInTime} on ${checkInDate} and is attempting to check out now. <br>
+                Please enter a valid check-out time for Student ID ${studentId} on ${checkInDate}.
+            `;
+
+            document.querySelector('#correctionPopup input[name="student_id"]').value = studentId;
+
+            document.getElementById('correctionPopup').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block'; // Show the overlay
+        }
+
+        function closeCorrectionPopup() {
+            document.getElementById('correctionPopup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none'; // Hide the overlay
+        }
     </script>
 </body>
 </html>

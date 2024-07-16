@@ -457,21 +457,63 @@ def volunteer_login():
     event_code = request.args.get('event_code')  # Get event code from URL
     event_data = get_event_data(event_code)  # Get event data
 
+    # Check if attendance-(event_code).txt exists in data/eventRawHours/, 
+    # where event_code is the event code, and if not, create it
+    if event_data is not None:
+        event_file = f'data/eventRawHours/attendance-{event_code}.txt'
+        if not os.path.exists(event_file):
+            open(event_file, 'w').close()
+    
     if event_data is None:
         return render_template('event_no_exist.html', version=version_number)
 
     message = ''
     if request.method == 'POST':
         id = request.form.get('id')
+        # Check if check-in time is greater than 12 hours ago
+        with open(f'data/eventRawHours/attendance-{event_code}.txt', 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if line.startswith(f"{id} Checked In") and "Checked Out" not in line:
+                    check_in_time_str = line.split(" at ")[1].strip()
+                    check_in_time = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f")
+                    time_diff = datetime.datetime.now() - check_in_time
+                    if time_diff.total_seconds() / 3600 > 12:
+                        # Show correction popup
+                        check_in_date = check_in_time.strftime("%A (%m-%d-%y)")  # Format check-in date
+                        check_in_time_formatted = check_in_time.strftime("%I:%M %p")  # Format check-in time
+                        # Redirect to GET with popup parameters
+                        return redirect(url_for('volunteer_login', event_code=event_code, show_correction_popup=True, 
+                                                student_id=id, check_in_time=check_in_time_formatted,
+                                                check_in_date=check_in_date))
+                    break  # Exit the loop if a matching check-in is found
+
         message = attendance.check_status_and_act(id, event_code)
         session['message'] = message  # Store message in session
         return redirect(url_for('volunteer_login', event_code=event_code))  # Redirect to GET route
 
     message = session.pop('message', None)  # Retrieve message from session
-    if message:
-        return render_template('volunteer_login.html', message=message, event=event_data['event_name'], version=version_number, recent_events=recent_events)
+    show_correction_popup = request.args.get('show_correction_popup') 
+
+    # Conditional Rendering 
+    if show_correction_popup:
+        return render_template(
+            'volunteer_login.html',
+            event=event_data['event_name'],
+            version=version_number,
+            recent_events=recent_events,
+            event_code=event_code,
+            show_correction_popup=True,
+            student_id=request.args.get('student_id'),
+            check_in_time=request.args.get('check_in_time'),
+            check_in_date=request.args.get('check_in_date'),
+            r_string=r_string
+        )
     else:
-        return render_template('volunteer_login.html', event=event_data['event_name'], version=version_number, recent_events=recent_events)
+        if message:
+            return render_template('volunteer_login.html', message=message, event=event_data['event_name'], version=version_number, recent_events=recent_events, event_code=event_code, r_string = r_string)
+        else:
+            return render_template('volunteer_login.html', event=event_data['event_name'], version=version_number, recent_events=recent_events, event_code=event_code, r_string = r_string) 
 
 @app.route('/<event_code>-hours' + r_string, methods=['GET'])
 def event_hours(event_code):
@@ -977,7 +1019,39 @@ def calculate_total_time():
         data = f.read()
     return render_template('hours.html', data=data, version=version_number)
 
+@app.route('/correct_checkout' + r_string, methods=['POST'])
+def correct_checkout():
+    event_code = request.form.get('event')
+    student_id = request.form.get('student_id')
+    correction_time = request.form.get('correction_time')
 
+    with open(f'data/eventRawHours/attendance-{event_code}.txt', 'r') as f:
+        lines = f.readlines()
+
+    # Find the last "Checked In" entry for the student and update it
+    for i, line in reversed(list(enumerate(lines))):
+        if line.startswith(f"{student_id} Checked In") and "Checked Out" not in line:
+            check_in_time_str = line.split(" at ")[1].strip()
+            check_in_time = datetime.datetime.strptime(check_in_time_str, "%Y-%m-%d %H:%M:%S.%f")
+            corrected_checkout_time = check_in_time.replace(hour=int(correction_time[:2]), minute=int(correction_time[3:]))
+            
+            # *** Calculate hours and minutes ***
+            time_diff = corrected_checkout_time - check_in_time 
+            total_seconds = time_diff.total_seconds()
+            hours, remainder = divmod(total_seconds, 3600)
+            minutes, _ = divmod(remainder, 60)
+
+            lines[i] = f"{student_id} Checked In at {check_in_time_str} and Checked Out at {corrected_checkout_time.strftime('%Y-%m-%d %H:%M:%S.%f')}, Meeting Time Recorded: {int(hours)} hours {int(minutes)} minutes\n"
+            break
+
+    # Write the updated lines back to the file
+    with open(f'data/eventRawHours/attendance-{event_code}.txt', 'w') as f:
+        f.writelines(lines)
+
+    # Now perform the current check-in
+    message = attendance.check_status_and_act(student_id, event_code)
+    session['message'] = message  # Store message in session
+    return redirect(url_for('volunteer_login', event_code=event_code)) 
 
 def main():
     app.run(debug=True)
