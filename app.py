@@ -528,8 +528,8 @@ def event_hours(event_code):
     outreach_scale_factor = event_data['outreach_scale_factor']
     outreach_hour_cap = event_data['outreach_hour_cap']
 
-    event_totals = {} # Define event_totals here
-    
+    event_totals = {}  # Define event_totals here
+
     # Read and sort entries from the event attendance file
     with open(event_file, 'r') as f:
         entries = f.readlines()
@@ -559,40 +559,35 @@ def event_hours(event_code):
     event_outreach_hours = {}
     student_daily_data = {}  # Initialize student_daily_data
 
-    # Collect daily data for the popup (modified)
-    for root, dirs, files in os.walk("data"):
-        for file in files:
-            if file.startswith("attendance"):
-                file_path = os.path.join(root, file)
-                with open(file_path, 'r') as f:
-                    lines = f.readlines()
-                    for line in lines:
-                        line = line.strip()
-                        # Extract date from attendance file line
-                        match = re.match(r'(\d+) Checked In at (\d{4}-\d{2}-\d{2}) .+ and Checked Out at .+, Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
-                        if match:
-                            student_id, date, hours, minutes = match.groups()
-                            logged_time = f"{hours} hours {minutes} minutes"
+    # *** Collect daily data ONLY for the current event ***
+    with open(event_file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            line = line.strip()
+            match = re.match(r'(\d+) Checked In at (\d{4}-\d{2}-\d{2}) .+ and Checked Out at .+, Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
+            if match:
+                student_id, date, hours, minutes = match.groups()
+                logged_time = f"{hours} hours {minutes} minutes"
 
-                            # Calculate outreach hours (considering cap and factor)
-                            total_event_hours = (int(hours) * 60 + int(minutes)) / 60
-                            outreach_hours = min(round(total_event_hours * outreach_scale_factor, 2), outreach_hour_cap)
-                            outreach_hours_int = int(outreach_hours)
-                            outreach_minutes = int(round((outreach_hours - outreach_hours_int) * 60))
-                            outreach_hours_str = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+                # Calculate outreach hours (considering cap and factor)
+                total_event_hours = (int(hours) * 60 + int(minutes)) / 60
+                outreach_hours = min(round(total_event_hours * outreach_scale_factor, 2), outreach_hour_cap)
+                outreach_hours_int = int(outreach_hours)
+                outreach_minutes = int(round((outreach_hours - outreach_hours_int) * 60))
+                outreach_hours_str = f"{outreach_hours_int} hours {outreach_minutes} minutes"
 
-                            if student_id not in student_daily_data:
-                                student_daily_data[student_id] = {}  # Use a dictionary to store daily data
+                if student_id not in student_daily_data:
+                    student_daily_data[student_id] = {}  # Use a dictionary to store daily data
 
-                            if date not in student_daily_data[student_id]:
-                                student_daily_data[student_id][date] = {
-                                    'logged_time': 0,
-                                    'outreach_hours': 0
-                                }
+                if date not in student_daily_data[student_id]:
+                    student_daily_data[student_id][date] = {
+                        'logged_time': 0,
+                        'outreach_hours': 0
+                    }
 
-                            # Aggregate logged time and outreach hours for the same day
-                            student_daily_data[student_id][date]['logged_time'] += int(hours) * 60 + int(minutes)
-                            student_daily_data[student_id][date]['outreach_hours'] += outreach_hours
+                # Aggregate logged time and outreach hours for the same day
+                student_daily_data[student_id][date]['logged_time'] += int(hours) * 60 + int(minutes)
+                student_daily_data[student_id][date]['outreach_hours'] += outreach_hours
 
     # Convert aggregated daily data to the required format
     for student_id, daily_data in student_daily_data.items():
