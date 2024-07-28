@@ -582,14 +582,12 @@ def event_hours(event_code):
                 if date not in student_daily_data[student_id]:
                     student_daily_data[student_id][date] = {
                         'logged_time': 0,
-                        'outreach_hours': 0,
-                        'tentative_outreach_hours': 0  # Initialize tentative outreach hours
+                        'outreach_hours': 0
                     }
 
                 # Aggregate logged time and outreach hours for the same day
                 student_daily_data[student_id][date]['logged_time'] += int(hours) * 60 + int(minutes)
                 student_daily_data[student_id][date]['outreach_hours'] += outreach_hours
-                student_daily_data[student_id][date]['tentative_outreach_hours'] += min(outreach_hours, outreach_hour_cap)  # Calculate tentative outreach hours
 
     # Convert aggregated daily data to the required format
     for student_id, daily_data in student_daily_data.items():
@@ -599,9 +597,6 @@ def event_hours(event_code):
             outreach_minutes = int(round((data['outreach_hours'] - outreach_hours_int) * 60))
             data['logged_time'] = f"{logged_time_hours} hours {logged_time_minutes} minutes"
             data['outreach_hours'] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
-            tentative_outreach_hours_int = int(data['tentative_outreach_hours'])
-            tentative_outreach_minutes = int(round((data['tentative_outreach_hours'] - tentative_outreach_hours_int) * 60))
-            data['tentative_outreach_hours'] = f"{tentative_outreach_hours_int} hours {tentative_outreach_minutes} minutes"  # Convert tentative outreach hours
 
     # Write to event_totals_file
     with open(event_totals_file, 'w') as f:
@@ -866,7 +861,7 @@ def volunteer_hours():
                                 if student_id not in volunteer_event_data:
                                     volunteer_event_data[student_id] = {}
                                 if event_name not in volunteer_event_data[student_id]:
-                                    volunteer_event_data[student_id][event_name] = {'hours': 0, 'minutes': 0, 'outreach_hours': 0, 'tentative_outreach_hours': 0}  # Initialize tentative outreach hours
+                                    volunteer_event_data[student_id][event_name] = {'hours': 0, 'minutes': 0, 'outreach_hours': 0}
 
                                 # Add outreach hours to event data (before capping)
                                 volunteer_event_data[student_id][event_name]['hours'] += hours
@@ -877,13 +872,6 @@ def volunteer_hours():
                                 if student_id not in event_outreach_hours:
                                     event_outreach_hours[student_id] = 0
                                 event_outreach_hours[student_id] = min(event_outreach_hours[student_id] + outreach_hours, outreach_hour_cap)
-
-                                # Calculate tentative outreach hours based on event group average hour cap
-                                event_group = event_data.get(event_code, {}).get('event_group', None)
-                                if event_group and event_group in event_group_average:
-                                    average_hour_cap = event_group_average[event_group]
-                                    tentative_outreach_hours = min(outreach_hours, average_hour_cap)
-                                    volunteer_event_data[student_id][event_name]['tentative_outreach_hours'] += tentative_outreach_hours
 
                 else:
                     # Handle files that don't contain a hyphen (optional)
@@ -905,12 +893,6 @@ def volunteer_hours():
             outreach_hours_int = int(outreach_hours)
             outreach_minutes = int(round((outreach_hours - outreach_hours_int) * 60))
             volunteer_event_data[student_id][event_name]['outreach_hours'] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
-
-            # Calculate and update tentative outreach hours in hours and minutes for each event
-            tentative_outreach_hours = volunteer_event_data[student_id][event_name]['tentative_outreach_hours']
-            tentative_outreach_hours_int = int(tentative_outreach_hours)
-            tentative_outreach_minutes = int(round((tentative_outreach_hours - tentative_outreach_hours_int) * 60))
-            volunteer_event_data[student_id][event_name]['tentative_outreach_hours'] = f"{tentative_outreach_hours_int} hours {tentative_outreach_minutes} minutes"
 
     # Convert total outreach hours to hours and minutes
     for student_id in event_outreach_hours:
@@ -940,70 +922,46 @@ def volunteer_hours():
                     capped_minutes = int((outreach_hour_cap - capped_hours) * 60)
                     volunteer_event_data[student_id][event_name]['outreach_hours'] = f"{capped_hours} hours {capped_minutes} minutes"
 
-    student_daily_data = {}  # Initialize student_daily_data
+    # Sum outreach hours from different event groups for each volunteer
+    volunteer_group_outreach_hours = {}
+    for student_id, events in volunteer_event_data.items():
+        for event_name, details in events.items():
+            event_code = next((code for code, data in event_data.items() if data['event_name'] == event_name), None)
+            if event_code:
+                event_group = event_data[event_code]['event_group']
+                outreach_hours_str = details['outreach_hours']
+                hours, minutes = map(int, outreach_hours_str.replace('hours', '').replace('minutes', '').split())
+                total_outreach_hours = hours + minutes / 60.0
 
-    # Collect daily data for all events
-    for root, dirs, files in os.walk("data"):
-        for file in files:
-            if file.startswith("attendance"):
-                file_path = os.path.join(root, file)
+                if student_id not in volunteer_group_outreach_hours:
+                    volunteer_group_outreach_hours[student_id] = {}
 
-                # Check if filename contains a hyphen before splitting
-                if '-' in file:
-                    # Get event code from filename
-                    event_code = file_path.split('/')[-1].split('-', 1)[1].split('.')[0]
+                if event_group not in volunteer_group_outreach_hours[student_id]:
+                    volunteer_group_outreach_hours[student_id][event_group] = 0
 
-                    # Get outreach data for the event
-                    outreach_scale_factor = event_data.get(event_code, {}).get('outreach_scale_factor', 1.0)
-                    outreach_hour_cap = event_data.get(event_code, {}).get('outreach_hour_cap', float('inf'))
+                volunteer_group_outreach_hours[student_id][event_group] += total_outreach_hours
 
-                    with open(file_path, 'r') as f:
-                        lines = f.readlines()
-                        for line in lines:
-                            line = line.strip()
-                            match = re.match(r'(\d+) Checked In at (\d{4}-\d{2}-\d{2}) .+ and Checked Out at .+, Meeting Time Recorded: (\d+) hours (\d+) minutes', line)
-                            if match:
-                                student_id, date, hours, minutes = match.groups()
-                                logged_time = f"{hours} hours {minutes} minutes"
+    # Cap the summed outreach hours for each event group
+    for student_id, groups in volunteer_group_outreach_hours.items():
+        for event_group, total_outreach_hours in groups.items():
+            outreach_hour_cap = event_group_average[event_group]
+            if total_outreach_hours > outreach_hour_cap:
+                volunteer_group_outreach_hours[student_id][event_group] = outreach_hour_cap
 
-                                # Calculate outreach hours (considering cap and factor)
-                                total_event_hours = (int(hours) * 60 + int(minutes)) / 60
-                                outreach_hours = min(round(total_event_hours * outreach_scale_factor, 2), outreach_hour_cap)
-                                outreach_hours_int = int(outreach_hours)
-                                outreach_minutes = int(round((outreach_hours - outreach_hours_int) * 60))
-                                outreach_hours_str = f"{outreach_hours_int} hours {outreach_minutes} minutes"
+    # Calculate the final total outreach hours for each volunteer
+    final_outreach_hours = {}
+    for student_id, groups in volunteer_group_outreach_hours.items():
+        final_outreach_hours[student_id] = sum(groups.values())
 
-                                if student_id not in student_daily_data:
-                                    student_daily_data[student_id] = {}  # Use a dictionary to store daily data
-
-                                if date not in student_daily_data[student_id]:
-                                    student_daily_data[student_id][date] = {
-                                        'logged_time': 0,
-                                        'outreach_hours': 0,
-                                        'tentative_outreach_hours': 0  # Initialize tentative outreach hours
-                                    }
-
-                                # Aggregate logged time and outreach hours for the same day
-                                student_daily_data[student_id][date]['logged_time'] += int(hours) * 60 + int(minutes)
-                                student_daily_data[student_id][date]['outreach_hours'] += outreach_hours
-                                student_daily_data[student_id][date]['tentative_outreach_hours'] += min(outreach_hours, outreach_hour_cap)  # Calculate tentative outreach hours
-
-    # Convert aggregated daily data to the required format
-    for student_id, daily_data in student_daily_data.items():
-        for date, data in daily_data.items():
-            logged_time_hours, logged_time_minutes = divmod(data['logged_time'], 60)
-            outreach_hours_int = int(data['outreach_hours'])
-            outreach_minutes = int(round((data['outreach_hours'] - outreach_hours_int) * 60))
-            data['logged_time'] = f"{logged_time_hours} hours {logged_time_minutes} minutes"
-            data['outreach_hours'] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
-            tentative_outreach_hours_int = int(data['tentative_outreach_hours'])
-            tentative_outreach_minutes = int(round((data['tentative_outreach_hours'] - tentative_outreach_hours_int) * 60))
-            data['tentative_outreach_hours'] = f"{tentative_outreach_hours_int} hours {tentative_outreach_minutes} minutes"  # Convert tentative outreach hours
+    # Convert final total outreach hours to hours and minutes
+    for student_id in final_outreach_hours:
+        outreach_hours_int = int(final_outreach_hours[student_id])
+        outreach_minutes = int(round((final_outreach_hours[student_id] - outreach_hours_int) * 60))
+        final_outreach_hours[student_id] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
 
     return render_template('total_volunteer_hours.html', volunteer_totals=volunteer_totals,
-                       version=version_number, volunteer_event_data=volunteer_event_data,
-                       event_outreach_hours=event_outreach_hours, event_data=event_data,
-                       student_daily_data=student_daily_data)  # Pass student_daily_data to template
+                           version=version_number, volunteer_event_data=volunteer_event_data,
+                           event_outreach_hours=final_outreach_hours, event_data=event_data)  # Pass final_outreach_hours to template
 
 def quicksort(arr):
     if len(arr) <= 1:
@@ -1012,7 +970,7 @@ def quicksort(arr):
     left = [x for x in arr if x < pivot]
     middle = [x for x in arr if x == pivot]
     right = [x for x in arr if x > pivot]
-    return quicksort(left) + middle + right
+    return quicksort(left) + middle + quicksort(right)
     
 @app.route('/hours', methods=['GET'])
 def calculate_total_time():
@@ -1131,3 +1089,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
