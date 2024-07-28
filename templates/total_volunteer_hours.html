@@ -168,37 +168,6 @@
         </table>
     </div>
 
-    <!-- New table for student_daily_data -->
-    <div class="container">
-        <h1>Daily Data</h1>
-        <input type="text" id="dailySearchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}"> <!-- Pd46c -->
-
-        <table>
-            <thead>
-                <tr>
-                    <th>ID Number</th>
-                    <th>Date</th>
-                    <th>Logged Time</th>
-                    <th>Outreach Hours</th>
-                    <th>Tentative Outreach Hours</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for student_id, daily_data in student_daily_data.items() %}
-                {% for date, data in daily_data.items() %}
-                    <tr data-student-id="{{ student_id }}">
-                        <td>{{ student_id }}</td>
-                        <td>{{ date }}</td>
-                        <td>{{ data.logged_time }}</td>
-                        <td>{{ data.outreach_hours }}</td>
-                        <td>{{ data.tentative_outreach_hours }}</td>
-                    </tr>
-                {% endfor %}
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
     <!-- Popup for detailed hours breakdown by event -->
     <div id="studentDetailsPopup" class="popup">
         <span class="close-button" onclick="closePopup()">×</span>
@@ -208,7 +177,7 @@
                 <tr>
                     <th>Event</th>
                     <th>Volunteer Hours</th>
-                    <th>Tentative Outreach Hours</th> <!-- P64c0 -->
+                    <th>Tentative Outreach Hours</th>
                 </tr>
             </thead>
             <tbody>
@@ -236,11 +205,19 @@
                 var row = tableBody.insertRow();
                 var eventCell = row.insertCell();
                 var volunteerHoursCell = row.insertCell();
-                var tentativeOutreachHoursCell = row.insertCell(); <!-- P64c0 -->
+                var outreachHoursCell = row.insertCell();
 
                 eventCell.textContent = eventName; 
                 volunteerHoursCell.textContent = eventBreakdown[eventName].hours + " hours " + eventBreakdown[eventName].minutes + " minutes";
-                tentativeOutreachHoursCell.textContent = eventBreakdown[eventName].tentative_outreach_hours; <!-- Pa433 -->
+
+                // Retrieve the outreach hour cap for the event
+                var outreachHourCap = eventData[eventName]?.outreach_hour_cap || Infinity;
+                var actualOutreachHours = eventBreakdown[eventName].outreach_hours.split(' ')[0];  // Assuming format is "X hours Y minutes"
+                if (parseFloat(actualOutreachHours) > outreachHourCap) {
+                    outreachHoursCell.textContent = outreachHourCap + " hours 0 minutes";  // Display capped value
+                } else {
+                    outreachHoursCell.textContent = eventBreakdown[eventName].outreach_hours;  // Display actual value
+                }
             }
 
             document.getElementById('studentDetailsPopup').style.display = 'block';
@@ -260,21 +237,6 @@
             // Add event listener for search input field
             var searchInputField = document.getElementById('searchInput');
             searchInputField.addEventListener('input', function(event) {
-                var searchInput = event.target.value.toLowerCase();
-                var tableRows = document.querySelectorAll('tbody tr');
-                tableRows.forEach(row => {
-                    var studentId = row.dataset.studentId.toLowerCase();
-                    if (studentId.startsWith(searchInput)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            });
-
-            // Add event listener for daily search input field
-            var dailySearchInputField = document.getElementById('dailySearchInput');
-            dailySearchInputField.addEventListener('input', function(event) {
                 var searchInput = event.target.value.toLowerCase();
                 var tableRows = document.querySelectorAll('tbody tr');
                 tableRows.forEach(row => {
