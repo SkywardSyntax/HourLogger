@@ -154,6 +154,7 @@
                     <th>ID Number</th>
                     <th>Total Volunteer Hours</th>
                     <th>Total Outreach Hours</th>
+                    <th>Tentative Outreach Hours</th> <!-- P1bb2 -->
                 </tr>
             </thead>
             <tbody>
@@ -162,6 +163,7 @@
                     <td><a href="#" class="student-link">{{ id }}</a></td>
                     <td>{{ time['hours'] }} hours {{ time['minutes'] }} minutes</td> 
                     <td>{{ event_outreach_hours.get(id, "0 hours 0 minutes") }}</td> 
+                    <td>{{ volunteer_event_data[id]['tentative_outreach_hours'] }}</td> <!-- P1bb2 -->
                 </tr>
             {% endfor %}
             </tbody>
@@ -177,7 +179,7 @@
                 <tr>
                     <th>Event</th>
                     <th>Volunteer Hours</th>
-                    <th>Tentative Outreach Hours</th>
+                    <th>Tentative Outreach Hours</th> <!-- P1bb2 -->
                 </tr>
             </thead>
             <tbody>
