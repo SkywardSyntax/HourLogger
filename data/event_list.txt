@@ -1,4 +1,4 @@
 EVENT1 | Robocamp (Week 1) | 0.33333333 | 12.00 | Locked | Robocamp
 EVENT2 | Robocamp (Week 2) | 0.33333333 | 12.00 | Locked | Robocamp
 EVENT3 | Robocamp (Week 3) | 0.33333333 | 12.00 | Locked | Robocamp
-EVENT4 | Pokken | 1.000 | 100 | Locked | Pokken
+
