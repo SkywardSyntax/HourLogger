@@ -922,10 +922,46 @@ def volunteer_hours():
                     capped_minutes = int((outreach_hour_cap - capped_hours) * 60)
                     volunteer_event_data[student_id][event_name]['outreach_hours'] = f"{capped_hours} hours {capped_minutes} minutes"
 
+    # Sum outreach hours from different event groups for each volunteer
+    volunteer_group_outreach_hours = {}
+    for student_id, events in volunteer_event_data.items():
+        for event_name, details in events.items():
+            event_code = next((code for code, data in event_data.items() if data['event_name'] == event_name), None)
+            if event_code:
+                event_group = event_data[event_code]['event_group']
+                outreach_hours_str = details['outreach_hours']
+                hours, minutes = map(int, outreach_hours_str.replace('hours', '').replace('minutes', '').split())
+                total_outreach_hours = hours + minutes / 60.0
+
+                if student_id not in volunteer_group_outreach_hours:
+                    volunteer_group_outreach_hours[student_id] = {}
+
+                if event_group not in volunteer_group_outreach_hours[student_id]:
+                    volunteer_group_outreach_hours[student_id][event_group] = 0
+
+                volunteer_group_outreach_hours[student_id][event_group] += total_outreach_hours
+
+    # Cap the summed outreach hours for each event group
+    for student_id, groups in volunteer_group_outreach_hours.items():
+        for event_group, total_outreach_hours in groups.items():
+            outreach_hour_cap = event_group_average[event_group]
+            if total_outreach_hours > outreach_hour_cap:
+                volunteer_group_outreach_hours[student_id][event_group] = outreach_hour_cap
+
+    # Calculate the final total outreach hours for each volunteer
+    final_outreach_hours = {}
+    for student_id, groups in volunteer_group_outreach_hours.items():
+        final_outreach_hours[student_id] = sum(groups.values())
+
+    # Convert final total outreach hours to hours and minutes
+    for student_id in final_outreach_hours:
+        outreach_hours_int = int(final_outreach_hours[student_id])
+        outreach_minutes = int(round((final_outreach_hours[student_id] - outreach_hours_int) * 60))
+        final_outreach_hours[student_id] = f"{outreach_hours_int} hours {outreach_minutes} minutes"
 
     return render_template('total_volunteer_hours.html', volunteer_totals=volunteer_totals,
-                       version=version_number, volunteer_event_data=volunteer_event_data,
-                       event_outreach_hours=event_outreach_hours, event_data=event_data)  # Pass event_data to template
+                           version=version_number, volunteer_event_data=volunteer_event_data,
+                           event_outreach_hours=final_outreach_hours, event_data=event_data)  # Pass final_outreach_hours to template
 
 def quicksort(arr):
     if len(arr) <= 1:
