@@ -146,6 +146,7 @@
 <body>
     <div class="container">
         <h1>Total Volunteer Hours</h1>
+        <input type="text" id="searchInput" placeholder="Enter ID" maxlength="6" pattern="\d{6}"> <!-- P0382 -->
 
         <table>
             <thead>
@@ -230,6 +231,21 @@
                     event.preventDefault(); 
                     var studentId = this.parentElement.parentElement.dataset.studentId;
                     showPopup(studentId);
+                });
+            });
+
+            // Add event listener for search input field
+            var searchInputField = document.getElementById('searchInput');
+            searchInputField.addEventListener('input', function(event) {
+                var searchInput = event.target.value.toLowerCase();
+                var tableRows = document.querySelectorAll('tbody tr');
+                tableRows.forEach(row => {
+                    var studentId = row.dataset.studentId.toLowerCase();
+                    if (studentId.startsWith(searchInput)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
                 });
             });
         };
