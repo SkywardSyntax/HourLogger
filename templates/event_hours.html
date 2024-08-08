@@ -159,8 +159,7 @@
                 <tr>
                     <th>ID Number</th>
                     <th>Total Logged Time</th>
-                    <th>Outreach Hours Awarded</th>
-                    <th>Tentative Outreach Hours</th> <!-- P0aea -->
+                    <th>Tentative Outreach Hours Awarded</th>
                 </tr>
             </thead>
             <tbody>
@@ -174,7 +173,6 @@
                         <td><a href="#" class="student-link">{{ student_id }}</a></td>
                         <td>{{ time_str }}</td>
                         <td>{{ outreach_hours_str }}</td> 
-                        <td>{{ student_daily_data[student_id]['tentative_outreach_hours'] }}</td> <!-- P0aea -->
                     </tr>
                 {% endif %}
             {% endfor %}
@@ -192,7 +190,6 @@
                     <th>Date</th>
                     <th>Logged Time</th>
                     <th>Outreach Hours</th> 
-                    <th>Tentative Outreach Hours</th> <!-- P0aea -->
                 </tr>
             </thead>
             <tbody>
@@ -238,7 +235,6 @@
                         var student_id = parts[0];
                         var time_str = parts[1]; 
                         var outreach_hours = eventOutreachHours[student_id] || "0 hours 0 minutes"; 
-                        var tentative_outreach_hours = studentDailyData[student_id]['tentative_outreach_hours'] || "0 hours 0 minutes"; // P0385
 
                         var row = document.createElement('tr');
                         row.dataset.studentId = student_id; // Add data attribute for student ID
@@ -246,7 +242,6 @@
                             <td><a href="#" class="student-link">${student_id}</a></td> 
                             <td>${time_str}</td>
                             <td>${outreach_hours}</td>
-                            <td>${tentative_outreach_hours}</td> <!-- P0385 -->
                         `;
                         tableBody.appendChild(row);
                     }
@@ -277,12 +272,10 @@
                 var dateCell = row.insertCell();
                 var loggedTimeCell = row.insertCell();
                 var outreachHoursCell = row.insertCell();
-                var tentativeOutreachHoursCell = row.insertCell(); // P0385
 
                 dateCell.textContent = date;
                 loggedTimeCell.textContent = entry.logged_time;
                 outreachHoursCell.textContent = entry.outreach_hours; 
-                tentativeOutreachHoursCell.textContent = entry.tentative_outreach_hours; // P0385
             }
 
             document.getElementById('studentDetailsPopup').style.display = 'block';
