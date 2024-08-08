@@ -834,7 +834,7 @@ def volunteer_hours():
                     # Get outreach data for the event
                     outreach_scale_factor = event_data.get(event_code, {}).get('outreach_scale_factor', 1.0)
                     outreach_hour_cap = event_data.get(event_code, {}).get('outreach_hour_cap', float('inf'))
-
+                    sort_file(file_path)
                     with open(file_path, 'r') as f:
                         lines = f.readlines()
                         for line in lines:
@@ -962,7 +962,6 @@ def volunteer_hours():
     return render_template('total_volunteer_hours.html', volunteer_totals=volunteer_totals,
                            version=version_number, volunteer_event_data=volunteer_event_data,
                            event_outreach_hours=final_outreach_hours, event_data=event_data)  # Pass final_outreach_hours to template
-
 def quicksort(arr):
     if len(arr) <= 1:
         return arr
@@ -1083,6 +1082,15 @@ def correct_checkout():
     message = attendance.check_status_and_act(student_id, event_code)
     session['message'] = message  # Store message in session
     return redirect(url_for('volunteer_login', event_code=event_code)) 
+
+#Sort tthe provided file according to the chronological order of the check ins
+def sort_file(file_path):
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        lines.sort(key=lambda x: datetime.datetime.strptime(re.search(r'Checked In at (.+?) and', x).group(1), '%Y-%m-%d %H:%M:%S.%f'))
+        with open(file_path, 'w') as f:
+            f.writelines(lines)
+            f.close()
 
 def main():
     app.run(debug=True)
